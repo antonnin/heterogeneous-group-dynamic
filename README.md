@@ -23,10 +23,8 @@ Aquesta eina utilitza un **algorisme de repartiment serpentina (*snake distribut
 1. Obre l'enllaç de l'aplicació en un navegador a l'ordinador connectat al projector o pantalla gran:
    👉 **[https://antonnin.github.io/heterogeneous-group-dynamic/](https://antonnin.github.io/heterogeneous-group-dynamic/)**
 2. Per defecte, l'aplicació s'obre a la pestanya **Taulell del moderador**.
-3. L'aplicació compta amb dues sessions preconfigurades per a treballar en paral·lel:
-   - **`GRUP1-XTCD-TGN`** (Grup 1)
-   - **`GRUP2-XTCD-TGN`** (Grup 2)
-4. Sota el codi QR veuràs els botons per seleccionar fàcilment **`GRUP 1`** o **`GRUP 2`**. Fes clic al grup que vulguis projectar.
+3. Sota el codi QR trobaràs un **menú desplegable amb totes les sessions obertes a Firebase** (per defecte hi ha **`GRUP1-XTCD-TGN`** i **`GRUP2-XTCD-TGN`**, a més de qualsevol altra sessió que hagis creat).
+4. Tria al desplegable la sessió que vulguis projectar o fes clic al botó **`+`** per afegir-ne una de nova.
 
 ---
 
@@ -51,11 +49,12 @@ Aquesta eina utilitza un **algorisme de repartiment serpentina (*snake distribut
 
 ---
 
-### 4. Gestió simultània de dos grups (Sessions en paral·lel)
-Si estàs coordinant dues aules o dos grups simultanis:
-- Pots commutar entre **`GRUP1-XTCD-TGN`** i **`GRUP2-XTCD-TGN`** fent clic als botons ràpids situats sota el codi QR.
-- El codi QR s'adaptarà immediatament a la sessió seleccionada.
-- Totes les dades i llistes d'inscrits són **completament independents** a Firebase; el que passi al Grup 1 no afecta al Grup 2.
+### 4. Gestió de múltiples sessions simultànies (Sessions en paral·lel)
+Si estàs coordinant diferents aules, tallers o grups simultanis:
+- Pots canviar a qualsevol sessió de Firebase en qualsevol moment triant-la al **desplegable situat just a sota del codi QR**.
+- En canviar de sessió, **el codi QR s'actualitza a l'instant** perquè apunti a la nova sessió, i els comptadors i equips mostrats canvien als d'aquella sessió.
+- Pots crear tantes sessions noves com necessitis amb el botó **`+`** al costat del desplegable.
+- Totes les dades i llistes d'inscrits són **completament independents** a Firebase; el que passi a un grup no afecta els altres.
 
 ---
 

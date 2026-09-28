@@ -303,80 +303,91 @@
       align-items: center;
     }
 
-    /* SELECTOR RÀPID DE SESSIÓ SOTA EL QR */
-    .qr-session-switcher {
+    /* DESPLEGABLE DE SESSIONS SOTA EL QR */
+    .qr-session-dropdown-box {
       width: 100%;
       margin: 10px 0 14px 0;
-      padding: 12px;
-      background: rgba(0, 0, 0, 0.3);
+      padding: 12px 14px;
+      background: rgba(0, 0, 0, 0.35);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
       display: flex;
       flex-direction: column;
       gap: 8px;
+      text-align: left;
     }
 
-    .switcher-title {
-      font-size: 0.78rem;
+    .switcher-label {
+      font-size: 0.8rem;
       color: var(--text-muted);
       font-weight: 700;
       letter-spacing: 0.3px;
       display: flex;
       align-items: center;
-      justify-content: center;
       gap: 6px;
     }
 
-    .session-quick-btns {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+    .select-wrapper {
+      display: flex;
+      align-items: center;
       gap: 8px;
+      width: 100%;
     }
 
-    .quick-sess-btn {
-      padding: 9px 6px;
+    .session-dropdown {
+      flex: 1;
+      padding: 10px 12px;
       border-radius: var(--radius-sm);
-      border: 1px solid var(--border-color);
       background: var(--bg-surface);
-      color: var(--text-muted);
-      font-size: 0.82rem;
+      border: 1px solid var(--border-color);
+      color: var(--accent-green);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.92rem;
       font-weight: 700;
+      outline: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300e676' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 16px;
+      padding-right: 32px;
+    }
+
+    .session-dropdown:focus {
+      border-color: var(--accent-green);
+      box-shadow: 0 0 10px rgba(0, 230, 118, 0.3);
+    }
+
+    .session-dropdown option {
+      background: #111726;
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 8px;
+    }
+
+    .btn-add-session {
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      background: rgba(0, 230, 118, 0.15);
+      border: 1px solid rgba(0, 230, 118, 0.4);
+      color: var(--accent-green);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      font-size: 0.95rem;
       transition: all 0.2s ease;
     }
 
-    .quick-sess-btn:hover {
-      background: var(--bg-card-hover);
-      color: var(--text-main);
-      border-color: rgba(255, 255, 255, 0.2);
-    }
-
-    .quick-sess-btn.active {
-      background: rgba(0, 230, 118, 0.15);
-      border-color: var(--accent-green);
-      color: var(--accent-green);
-      box-shadow: 0 0 12px rgba(0, 230, 118, 0.25);
-    }
-
-    .active-session-display {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 4px;
-      padding-top: 6px;
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .code-badge {
-      font-family: 'Orbitron', sans-serif;
-      font-weight: 800;
-      font-size: 0.95rem;
-      color: var(--accent-green);
-      letter-spacing: 0.5px;
+    .btn-add-session:hover {
+      background: var(--accent-green);
+      color: #000;
+      box-shadow: 0 0 10px rgba(0, 230, 118, 0.3);
     }
 
     .btn-text-edit {
@@ -1188,6 +1199,10 @@
     let adminSearchQuery = "";
     let adminLevelFilter = "all";
 
+    // Sessions conegudes i conjunt per al desplegable
+    const knownSessions = new Set(["GRUP1-XTCD-TGN", "GRUP2-XTCD-TGN"]);
+    if (currentSession) knownSessions.add(currentSession);
+
     // Contrasenya de seguretat
     const ADMIN_PASSWORD = "GTRoboticaBP2026";
 
@@ -1213,6 +1228,7 @@
       if (urlParams.has('session')) {
         currentSession = urlParams.get('session').toUpperCase().trim();
         localStorage.setItem("microbitada_current_session", currentSession);
+        knownSessions.add(currentSession);
       }
 
       const mode = urlParams.get('mode');
@@ -1225,7 +1241,8 @@
       }
 
       // Inicialitzar les dues sessions per defecte a Firebase
-      initDefaultSessions();
+      await initDefaultSessions();
+      loadAllFirebaseSessions();
 
       updateHeaderSessionDisplay();
       renderCurrentView();
@@ -1235,10 +1252,65 @@
       try {
         for (const s of DEFAULT_SESSIONS) {
           await ensureSessionDocument(s);
+          knownSessions.add(s);
         }
       } catch (e) {
         console.warn("Inicialització sessions per defecte:", e);
       }
+    }
+
+    async function loadAllFirebaseSessions() {
+      knownSessions.add("GRUP1-XTCD-TGN");
+      knownSessions.add("GRUP2-XTCD-TGN");
+      if (currentSession) knownSessions.add(currentSession);
+
+      try {
+        const snap = await window.fs.getDocs(window.fs.collection(window.db, "sessions"));
+        snap.forEach(docSnap => {
+          if (docSnap.id) knownSessions.add(docSnap.id);
+        });
+      } catch (e) {
+        console.warn("Sessions collection query:", e);
+      }
+
+      try {
+        const studentsSnap = await window.fs.getDocs(window.fs.collectionGroup(window.db, "students"));
+        studentsSnap.forEach(stDoc => {
+          const sId = stDoc.ref.parent && stDoc.ref.parent.parent ? stDoc.ref.parent.parent.id : null;
+          if (sId) knownSessions.add(sId);
+        });
+      } catch (e) {
+        console.warn("CollectionGroup students query:", e);
+      }
+
+      updateSessionDropdownOptions();
+    }
+
+    function updateSessionDropdownOptions() {
+      const select = document.getElementById('session-select-dropdown');
+      if (!select) return;
+
+      const sortedSessions = Array.from(knownSessions).sort();
+      
+      select.innerHTML = `
+        ${sortedSessions.map(s => `
+          <option value="${escapeHtml(s)}" ${s === currentSession ? 'selected' : ''}>
+            ${escapeHtml(s)}
+          </option>
+        `).join('')}
+        <option value="__NEW__" style="color:var(--accent-blue);">+ Crear una nova sessió...</option>
+      `;
+      select.value = currentSession;
+    }
+
+    function handleSessionDropdownChange(val) {
+      if (val === '__NEW__') {
+        const select = document.getElementById('session-select-dropdown');
+        if (select) select.value = currentSession;
+        openSessionModal();
+        return;
+      }
+      switchActiveSession(val);
     }
 
     function updateHeaderSessionDisplay() {
@@ -1246,10 +1318,11 @@
       if (el) el.innerText = currentSession;
     }
 
-    // Canvi ràpid de sessió activa (des del botó sota el QR o capçalera)
+    // Canvi de sessió activa (des del desplegable sota el QR, capçalera o modal)
     function switchActiveSession(newSession) {
       if (!newSession) return;
       currentSession = newSession.toUpperCase().trim();
+      knownSessions.add(currentSession);
       localStorage.setItem("microbitada_current_session", currentSession);
       updateHeaderSessionDisplay();
 
@@ -1318,9 +1391,6 @@
       // Assegurar existència de la sessió a Firestore
       ensureSessionDocument(currentSession);
 
-      const isG1 = currentSession === 'GRUP1-XTCD-TGN';
-      const isG2 = currentSession === 'GRUP2-XTCD-TGN';
-
       app.innerHTML = `
         <div class="dashboard">
           <!-- Panell QR -->
@@ -1330,23 +1400,17 @@
             
             <div class="qr-box" id="qrcode"></div>
             
-            <!-- Selector ràpid de sessió sota el codi QR -->
-            <div class="qr-session-switcher">
-              <span class="switcher-title">
-                <i class="fa-solid fa-arrows-split-up-and-left"></i> Canvia de sessió activa:
-              </span>
-              <div class="session-quick-btns">
-                <button class="quick-sess-btn ${isG1 ? 'active' : ''}" onclick="switchActiveSession('GRUP1-XTCD-TGN')">
-                  <i class="fa-solid fa-users"></i> GRUP 1
-                </button>
-                <button class="quick-sess-btn ${isG2 ? 'active' : ''}" onclick="switchActiveSession('GRUP2-XTCD-TGN')">
-                  <i class="fa-solid fa-users"></i> GRUP 2
-                </button>
-              </div>
-              <div class="active-session-display">
-                <span class="code-badge" id="qr-session-name">${currentSession}</span>
-                <button class="btn-text-edit" onclick="openSessionModal()" title="Canviar o crear una altra sessió">
-                  <i class="fa-solid fa-pen-to-square"></i> Altra sessió
+            <!-- Desplegable amb totes les sessions obertes a Firebase -->
+            <div class="qr-session-dropdown-box">
+              <label for="session-select-dropdown" class="switcher-label">
+                <i class="fa-solid fa-layer-group" style="color:var(--accent-green);"></i> Sessió activa:
+              </label>
+              <div class="select-wrapper">
+                <select id="session-select-dropdown" class="session-dropdown" onchange="handleSessionDropdownChange(this.value)">
+                  <!-- Es carrega dinàmicament amb totes les sessions de Firebase -->
+                </select>
+                <button class="btn-add-session" onclick="openSessionModal()" title="Crear una nova sessió">
+                  <i class="fa-solid fa-plus"></i>
                 </button>
               </div>
             </div>
@@ -1438,6 +1502,10 @@
           correctLevel: QRCode.CorrectLevel.M
         });
       }
+
+      // Actualitzar desplegable de sessions
+      updateSessionDropdownOptions();
+      loadAllFirebaseSessions();
 
       // Escoltar en temps real la col·lecció de la sessió actual
       const colRef = window.fs.collection(window.db, "sessions", currentSession, "students");
@@ -2198,6 +2266,9 @@
           updateHeaderSessionDisplay();
         }
 
+        knownSessions.delete(sId);
+        updateSessionDropdownOptions();
+
         await loadAndRenderAdminData();
       } catch (err) {
         showToast("Error en eliminar sessió: " + err.message, "error");
@@ -2323,12 +2394,14 @@
       }
 
       currentSession = newSession;
+      knownSessions.add(currentSession);
       localStorage.setItem("microbitada_current_session", currentSession);
       updateHeaderSessionDisplay();
       closeSessionModal();
 
       await ensureSessionDocument(currentSession);
       showToast(`Sessió canviada a ${currentSession}`, "success");
+      updateSessionDropdownOptions();
 
       // Actualitzar URL
       const url = new URL(window.location);
