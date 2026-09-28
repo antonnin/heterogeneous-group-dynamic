@@ -3,23 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Grups Heterogenis - Escape Room micro:bit</title>
+  <title>Grups Heterogenis - micro:bitada</title>
   
-  <!-- Font i Icones -->
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Fonts de Google -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Icones FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- Libreria QRCode -->
+  <!-- Llibreria Codi QR -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <!-- Firebase SDK Modular -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { 
-      getFirestore, collection, doc, setDoc, onSnapshot, updateDoc, deleteDoc, getDocs 
+      getFirestore, collection, collectionGroup, doc, setDoc, onSnapshot, updateDoc, deleteDoc, getDocs 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // Configuració oficial de Firebase
+    // Configuració de Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAIsRgPh7d3pN5gEdwenOUKJZyp3cYIPVQ",
       authDomain: "dinamica-escape-room-microbit.firebaseapp.com",
@@ -33,188 +37,298 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Exposar al scope global
+    // Exposar al scope global per compatibilitat amb la lògica UI
     window.db = db;
-    window.fs = { collection, doc, setDoc, onSnapshot, updateDoc, deleteDoc, getDocs };
+    window.fs = { collection, collectionGroup, doc, setDoc, onSnapshot, updateDoc, deleteDoc, getDocs };
+    window.dispatchEvent(new CustomEvent('firebase-ready'));
   </script>
 
   <style>
     :root {
-      --bg-dark: #0d1117;
-      --card-bg: #161b22;
+      --bg-dark: #080c14;
+      --bg-card: #111726;
+      --bg-card-hover: #162035;
+      --bg-surface: #192238;
+      --border-color: rgba(255, 255, 255, 0.09);
+      --border-color-glow: rgba(0, 230, 118, 0.35);
+      
       --accent-green: #00e676;
+      --accent-green-rgb: 0, 230, 118;
       --accent-blue: #00e5ff;
-      --accent-orange: #ff9100;
-      --accent-red: #ff1744;
-      --text-light: #f0f6fc;
-      --border-color: #30363d;
+      --accent-purple: #818cf8;
+      --accent-orange: #f59e0b;
+      --accent-red: #f43f5e;
+      --accent-red-hover: #e11d48;
+      
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-xl: 22px;
+      
+      --shadow-subtle: 0 4px 20px rgba(0, 0, 0, 0.4);
+      --shadow-glow: 0 0 25px rgba(0, 230, 118, 0.2);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
-      font-family: 'Roboto', sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
       background-color: var(--bg-dark);
-      color: var(--text-light);
+      background-image: 
+        radial-gradient(circle at 15% 20%, rgba(0, 230, 118, 0.06) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(0, 229, 255, 0.05) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(129, 140, 248, 0.03) 0%, transparent 60%);
+      background-attachment: fixed;
+      color: var(--text-main);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px;
+      padding: 15px;
     }
 
+    /* BARRA SUPERIOR / HEADER */
     header {
-      text-align: center;
-      margin-bottom: 25px;
       width: 100%;
-      max-width: 1000px;
-    }
-
-    h1 {
-      font-family: 'Orbitron', sans-serif;
-      color: var(--accent-green);
-      font-size: 2.2rem;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      margin-bottom: 8px;
-      text-shadow: 0 0 10px rgba(0, 230, 118, 0.3);
-    }
-
-    .subtitle {
-      color: #8b949e;
-      font-size: 1rem;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 1100px;
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 25px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-    }
-
-    /* Formulari de registre (Mòbil) */
-    .register-card {
-      max-width: 500px;
-      margin: 0 auto;
-    }
-
-    .form-group {
+      max-width: 1200px;
       margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
     }
 
-    label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 500;
-      color: var(--accent-blue);
-    }
-
-    input[type="text"] {
+    .header-top {
       width: 100%;
-      padding: 12px 15px;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
-      background: #0d1117;
-      color: white;
-      font-size: 1rem;
-      outline: none;
-    }
-
-    input[type="text"]:focus {
-      border-color: var(--accent-blue);
-      box-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
-    }
-
-    .level-options {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
-    }
-
-    .level-btn {
-      padding: 12px 15px;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
-      background: #21262d;
-      color: white;
-      cursor: pointer;
-      text-align: left;
-      transition: all 0.2s ease;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
     }
 
-    .level-btn:hover { background: #30363d; }
-    .level-btn.selected {
-      border-color: var(--accent-green);
-      background: rgba(0, 230, 118, 0.15);
-      font-weight: bold;
+    .brand-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
     }
 
-    .badge {
-      padding: 4px 8px;
-      border-radius: 4px;
+    .brand-icon-box {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, rgba(0, 230, 118, 0.2), rgba(0, 229, 255, 0.15));
+      border: 1px solid var(--accent-green);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-green);
+      font-size: 1.4rem;
+      box-shadow: 0 0 15px rgba(0, 230, 118, 0.25);
+    }
+
+    .brand-text h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      background: linear-gradient(90deg, #ffffff 0%, var(--accent-green) 50%, var(--accent-blue) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 20px rgba(0, 230, 118, 0.2);
+      line-height: 1.1;
+    }
+
+    .brand-text .tagline {
       font-size: 0.8rem;
-      font-weight: bold;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
     }
 
-    .badge-1 { background: #334155; color: #cbd5e1; }
-    .badge-2 { background: #1e3a8a; color: #93c5fd; }
-    .badge-3 { background: #065f46; color: #6ee7b7; }
-    .badge-4 { background: #78350f; color: #fde047; }
-
-    .btn-main {
-      width: 100%;
-      padding: 14px;
-      background: var(--accent-green);
-      color: #000;
-      font-weight: bold;
-      font-size: 1.1rem;
-      border: none;
-      border-radius: 8px;
+    /* Selector de Sessió Activa */
+    .session-badge-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-size: 0.88rem;
+      font-weight: 600;
       cursor: pointer;
-      margin-top: 15px;
-      transition: transform 0.1s ease, background 0.2s ease;
+      transition: all 0.2s ease;
     }
 
-    .btn-main:hover {
-      background: #00c853;
-      transform: translateY(-2px);
+    .session-badge-btn:hover {
+      border-color: var(--accent-blue);
+      background: var(--bg-card-hover);
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.2);
     }
 
-    /* Projecció / Taulell del Moderador */
+    .session-indicator-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      box-shadow: 0 0 8px var(--accent-green);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+
+    /* NAVEGACIÓ DE PESTANYES */
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      background: rgba(17, 23, 38, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 6px;
+      border-radius: 30px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-subtle);
+    }
+
+    .nav-tab-btn {
+      padding: 9px 20px;
+      border-radius: 24px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .nav-tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-tab-btn.active {
+      background: linear-gradient(135deg, rgba(0, 230, 118, 0.25), rgba(0, 229, 255, 0.15));
+      color: var(--accent-green);
+      border: 1px solid rgba(0, 230, 118, 0.4);
+      box-shadow: 0 0 14px rgba(0, 230, 118, 0.2);
+    }
+
+    .nav-tab-btn.admin-tab.active {
+      background: linear-gradient(135deg, rgba(129, 140, 248, 0.25), rgba(0, 229, 255, 0.15));
+      color: var(--accent-purple);
+      border-color: rgba(129, 140, 248, 0.4);
+      box-shadow: 0 0 14px rgba(129, 140, 248, 0.2);
+    }
+
+    /* CONTENIDOR PRINCIPAL */
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-subtle);
+      position: relative;
+    }
+
+    /* VISTA MODERADOR (PROJECCIÓ) */
     .dashboard {
       display: grid;
-      grid-template-columns: 300px 1fr;
+      grid-template-columns: 320px 1fr;
       gap: 25px;
     }
 
-    @media (max-width: 850px) {
-      .dashboard { grid-template-columns: 1fr; }
+    @media (max-width: 900px) {
+      .dashboard {
+        grid-template-columns: 1fr;
+      }
     }
 
-    .qr-panel {
-      background: #0d1117;
-      padding: 20px;
-      border-radius: 10px;
+    .qr-card {
+      background: var(--bg-surface);
+      padding: 22px;
+      border-radius: var(--radius-md);
       border: 1px solid var(--border-color);
       text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
+      box-shadow: var(--shadow-subtle);
     }
 
-    #qrcode {
+    .qr-card h3 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.15rem;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .qr-card p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    .qr-box {
       background: white;
-      padding: 10px;
-      border-radius: 8px;
-      margin: 15px 0;
+      padding: 12px;
+      border-radius: var(--radius-md);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
+    .qr-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* TAULELL DE CONTROLS */
     .controls-panel {
       display: flex;
       flex-direction: column;
@@ -222,205 +336,1323 @@
     }
 
     .stats-bar {
-      display: flex;
-      gap: 15px;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 12px;
     }
 
     .stat-card {
-      background: #0d1117;
-      padding: 12px 18px;
-      border-radius: 8px;
+      background: var(--bg-surface);
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
       border: 1px solid var(--border-color);
-      flex: 1;
-      min-width: 120px;
       text-align: center;
+      transition: transform 0.2s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .stat-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
     }
 
     .stat-value {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: var(--accent-blue);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--accent-green);
     }
 
+    .stat-card.stat-l4 .stat-value { color: var(--accent-orange); }
+    .stat-card.stat-l3 .stat-value { color: #34d399; }
+    .stat-card.stat-l2 .stat-value { color: var(--accent-blue); }
+    .stat-card.stat-l1 .stat-value { color: #94a3b8; }
+
+    /* Barra d'accions de moderació */
+    .moderator-actions-bar {
+      background: var(--bg-surface);
+      padding: 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .input-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .input-group label {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .input-number {
+      width: 70px;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-dark);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      font-size: 1rem;
+      font-weight: 700;
+      text-align: center;
+      outline: none;
+    }
+
+    .input-number:focus {
+      border-color: var(--accent-green);
+      box-shadow: 0 0 8px rgba(0, 230, 118, 0.3);
+    }
+
+    .btn-main {
+      padding: 10px 18px;
+      background: linear-gradient(135deg, var(--accent-green), #00c853);
+      color: #041407;
+      font-weight: 700;
+      font-size: 0.95rem;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 14px rgba(0, 230, 118, 0.3);
+    }
+
+    .btn-main:hover {
+      background: linear-gradient(135deg, #00ff84, #00e676);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0, 230, 118, 0.4);
+    }
+
+    .btn-danger {
+      padding: 10px 16px;
+      background: rgba(244, 63, 94, 0.15);
+      border: 1px solid rgba(244, 63, 94, 0.4);
+      color: var(--accent-red);
+      font-weight: 600;
+      font-size: 0.88rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-danger:hover {
+      background: var(--accent-red);
+      color: white;
+      box-shadow: 0 4px 14px rgba(244, 63, 94, 0.4);
+    }
+
+    .btn-warning {
+      padding: 10px 16px;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: var(--accent-orange);
+      font-weight: 600;
+      font-size: 0.88rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-warning:hover {
+      background: var(--accent-orange);
+      color: #000;
+    }
+
+    /* GRAELLA D'EQUIPS */
     .groups-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 15px;
-      margin-top: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+      margin-top: 10px;
     }
 
     .group-card {
-      background: #0d1117;
+      background: var(--bg-surface);
       border: 1px solid var(--border-color);
       border-top: 4px solid var(--accent-blue);
-      border-radius: 8px;
-      padding: 15px;
+      border-radius: var(--radius-md);
+      padding: 16px;
+      box-shadow: var(--shadow-subtle);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .group-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
     }
 
     .group-card.has-advanced {
       border-top-color: var(--accent-green);
     }
 
+    .group-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
     .group-title {
       font-family: 'Orbitron', sans-serif;
       font-size: 1.1rem;
-      margin-bottom: 10px;
-      display: flex;
-      justify-content: space-between;
+      font-weight: 700;
+      color: var(--text-main);
     }
 
     .member-list {
       list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
 
     .member-item {
-      padding: 6px 0;
-      border-bottom: 1px solid #21262d;
+      padding: 7px 10px;
+      border-radius: var(--radius-sm);
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.03);
       display: flex;
       justify-content: space-between;
       align-items: center;
+      font-size: 0.92rem;
+    }
+
+    /* BADGES DE NIVELL */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+
+    .badge-1 { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); }
+    .badge-2 { background: rgba(0, 229, 255, 0.15); color: #7dd3fc; border: 1px solid rgba(0, 229, 255, 0.3); }
+    .badge-3 { background: rgba(16, 185, 129, 0.18); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.35); }
+    .badge-4 { background: rgba(245, 158, 11, 0.2); color: #fde047; border: 1px solid rgba(245, 158, 11, 0.4); }
+
+    /* VISTA DE L'ALUMNE */
+    .student-view-container {
+      max-width: 520px;
+      margin: 10px auto;
+    }
+
+    .form-group {
+      margin-bottom: 22px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--accent-blue);
       font-size: 0.95rem;
     }
 
-    .member-item:last-child { border-bottom: none; }
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 13px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      background: var(--bg-dark);
+      color: white;
+      font-size: 1rem;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    input[type="text"]:focus, input[type="password"]:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+    }
+
+    .level-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .level-btn {
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      background: var(--bg-surface);
+      color: white;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .level-btn:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateX(4px);
+    }
+
+    .level-btn.selected {
+      border-color: var(--accent-green);
+      background: rgba(0, 230, 118, 0.15);
+      box-shadow: 0 0 15px rgba(0, 230, 118, 0.2);
+    }
+
+    .level-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .level-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .level-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
 
     .assigned-view {
       text-align: center;
-      padding: 30px 10px;
+      padding: 30px 15px;
+      background: var(--bg-surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-subtle);
     }
 
     .group-badge-large {
       font-family: 'Orbitron', sans-serif;
-      font-size: 3rem;
+      font-size: 3.2rem;
+      font-weight: 800;
       color: var(--accent-green);
       margin: 20px 0;
-      text-shadow: 0 0 15px rgba(0, 230, 118, 0.4);
+      text-shadow: 0 0 25px rgba(0, 230, 118, 0.5);
+      letter-spacing: 2px;
     }
 
-    .btn-danger {
-      background: var(--accent-red);
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 6px;
+    /* PANELL D'ADMINISTRACIÓ / GESTOR DE DADES */
+    .admin-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .admin-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      background: var(--bg-surface);
+      padding: 16px 20px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+    }
+
+    .admin-title-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .admin-title-area h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.3rem;
+      color: var(--accent-purple);
+    }
+
+    .sessions-shelf {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .shelf-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .sessions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 14px;
+    }
+
+    .session-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
       cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .session-card:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .session-card.active-session {
+      border-color: var(--accent-purple);
+      background: rgba(129, 140, 248, 0.12);
+      box-shadow: 0 0 16px rgba(129, 140, 248, 0.25);
+    }
+
+    .session-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .session-card-name {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .session-card-meta {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* TAULA DE DADES */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      background: var(--bg-surface);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+    }
+
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    table.data-table th {
+      background: rgba(0, 0, 0, 0.35);
+      padding: 12px 16px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-size: 0.78rem;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    table.data-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-main);
+    }
+
+    table.data-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .action-icon-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      padding: 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: all 0.15s ease;
+    }
+
+    .action-icon-btn:hover {
+      color: var(--accent-red);
+      background: rgba(244, 63, 94, 0.15);
+    }
+
+    /* FILTRES I CERCA */
+    .filter-bar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .search-input {
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background: var(--bg-dark);
+      color: white;
+      font-size: 0.9rem;
+      min-width: 220px;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent-purple);
+    }
+
+    /* MODAL DE CONTRASENYA */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+      padding: 20px;
+    }
+
+    .modal-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+      text-align: center;
+    }
+
+    .modal-icon {
+      width: 56px;
+      height: 56px;
+      background: rgba(129, 140, 248, 0.15);
+      border: 1px solid var(--accent-purple);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px auto;
+      font-size: 1.5rem;
+      color: var(--accent-purple);
+    }
+
+    .modal-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.25rem;
+      margin-bottom: 8px;
+    }
+
+    .modal-desc {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .password-input-wrap {
+      position: relative;
+      margin-bottom: 16px;
+    }
+
+    .toggle-pwd-btn {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .modal-error {
+      color: var(--accent-red);
+      font-size: 0.85rem;
+      margin-bottom: 12px;
+      display: none;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-full {
+      flex: 1;
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* TOAST DE NOTIFICACIONS */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .toast {
+      pointer-events: auto;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-left: 4px solid var(--accent-green);
+      padding: 12px 18px;
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      animation: slideIn 0.3s ease forwards;
+    }
+
+    .toast.toast-error { border-left-color: var(--accent-red); }
+    .toast.toast-info { border-left-color: var(--accent-blue); }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* FOOTER */
+    footer {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--text-dim);
     }
   </style>
 </head>
 <body>
 
+  <!-- HEADER PRINCIPAL -->
   <header>
-    <h1><i class="fa-solid fa-microchip"></i> Escape Room micro:bit</h1>
-    <p class="subtitle">Generador de Grups Heterogenis en Temps Real</p>
+    <div class="header-top">
+      <div class="brand-container">
+        <div class="brand-icon-box">
+          <i class="fa-solid fa-microchip"></i>
+        </div>
+        <div class="brand-text">
+          <h1>micro:bitada</h1>
+          <div class="tagline">Generador de Grups Heterogenis en Temps Real</div>
+        </div>
+      </div>
+
+      <!-- Indicador i botó de selecció de sessió -->
+      <button class="session-badge-btn" onclick="openSessionModal()" title="Canviar de sessió de treball">
+        <span class="session-indicator-dot"></span>
+        <span>Sessió: <strong id="header-session-name" style="color:var(--accent-green);">AULA-1</strong></span>
+        <i class="fa-solid fa-pen-to-square" style="font-size:0.8rem; color:var(--text-dim); margin-left:4px;"></i>
+      </button>
+    </div>
+
+    <!-- Navegació de vistes -->
+    <nav class="nav-tabs">
+      <button class="nav-tab-btn active" id="tab-mod" onclick="switchView('mod')">
+        <i class="fa-solid fa-chalkboard-user"></i>
+        <span>Taulell Moderador</span>
+      </button>
+      <button class="nav-tab-btn" id="tab-attendee" onclick="switchView('attendee')">
+        <i class="fa-solid fa-mobile-screen"></i>
+        <span>Vista Participant</span>
+      </button>
+      <button class="nav-tab-btn admin-tab" id="tab-admin" onclick="switchView('admin')">
+        <i class="fa-solid fa-database"></i>
+        <span>Gestor Dades Firebase</span>
+      </button>
+    </nav>
   </header>
 
-  <div class="container" id="app">
-    <!-- Es carregarà dinàmicament segons el mode (Client / Moderador) -->
-    <p style="text-align: center;">Carregant aplicació...</p>
+  <!-- CONTENIDOR PRINCIPAL DE L'APLICACIÓ -->
+  <main class="container" id="app">
+    <div style="text-align: center; padding: 40px;">
+      <i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color: var(--accent-green); margin-bottom: 14px;"></i>
+      <p style="color: var(--text-muted);">Connectant amb Firebase i preparant la micro:bitada...</p>
+    </div>
+  </main>
+
+  <footer>
+    <p>micro:bitada &bull; Dinàmica de Grups Heterogenis per a la comunitat educativa</p>
+  </footer>
+
+  <!-- MODAL DE LOGIN PER L'ADMINISTRACIÓ -->
+  <div class="modal-overlay" id="admin-login-modal" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-icon">
+        <i class="fa-solid fa-lock"></i>
+      </div>
+      <h3 class="modal-title">Zona d'Administració</h3>
+      <p class="modal-desc">Introdueix la contrasenya per gestionar les dades emmagatzemades a Firebase:</p>
+      
+      <div class="password-input-wrap">
+        <input type="password" id="admin-pwd-input" placeholder="Contrasenya..." autocomplete="current-password">
+        <button class="toggle-pwd-btn" type="button" onclick="togglePasswordVisibility('admin-pwd-input', this)">
+          <i class="fa-solid fa-eye"></i>
+        </button>
+      </div>
+
+      <div class="modal-error" id="admin-pwd-error">
+        <i class="fa-solid fa-circle-exclamation"></i> Contrasenya incorrecta. Torna-ho a provar.
+      </div>
+
+      <div class="modal-buttons">
+        <button class="btn-secondary btn-full" onclick="closeAdminLoginModal()">Cancel·lar</button>
+        <button class="btn-main btn-full" onclick="verifyAdminPassword()">Accedir</button>
+      </div>
+    </div>
   </div>
 
+  <!-- MODAL DE CANVI DE SESSIÓ -->
+  <div class="modal-overlay" id="change-session-modal" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-icon" style="border-color: var(--accent-blue); color: var(--accent-blue); background: rgba(0, 229, 255, 0.1);">
+        <i class="fa-solid fa-layer-group"></i>
+      </div>
+      <h3 class="modal-title">Canviar de Sessió</h3>
+      <p class="modal-desc">Introdueix el nom o identificador de la sessió on vols treballar (ex: AULA-1, TALLER-2):</p>
+      
+      <div class="form-group" style="text-align: left;">
+        <input type="text" id="new-session-input" placeholder="Ex: AULA-2">
+      </div>
+
+      <div class="modal-buttons">
+        <button class="btn-secondary btn-full" onclick="closeSessionModal()">Cancel·lar</button>
+        <button class="btn-main btn-full" onclick="confirmChangeSession()">Canviar Sessió</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENIDOR DE TOASTS -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- LÒGICA DE L'APLICACIÓ -->
   <script>
-    // Variables Globals
-    let currentSession = "AULA-1";
+    // Variables d'Estat Global
+    let currentSession = localStorage.getItem("microbitada_current_session") || "AULA-1";
+    let currentView = "mod"; // 'mod', 'attendee', 'admin'
     let selectedLevel = 0;
     let myStudentId = localStorage.getItem("microbit_student_id") || null;
+    let isAdminUnlocked = sessionStorage.getItem("microbit_admin_auth") === "true";
+    let activeModeratorUnsubscribe = null;
+    let activeStudentUnsubscribe = null;
+    let cachedAdminData = {};
+    let adminSearchQuery = "";
+    let adminLevelFilter = "all";
 
-    // Inicialitzar la vista quan Firebase estigui a punt
-    window.addEventListener('load', () => {
+    // Contrasenya de seguretat
+    const ADMIN_PASSWORD = "GTRoboticaBP2026";
+
+    // Inicialització quan Firebase estigui a punt
+    window.addEventListener('firebase-ready', () => {
+      initApp();
+    });
+
+    // Fallback d'inicialització si l'esdeveniment ja s'ha disparat
+    window.addEventListener('DOMContentLoaded', () => {
       const checkFirebase = setInterval(() => {
         if (window.db && window.fs) {
           clearInterval(checkFirebase);
           initApp();
         }
-      }, 100);
+      }, 80);
     });
 
     function initApp() {
+      // Llegir paràmetres de la URL
       const urlParams = new URLSearchParams(window.location.search);
-      const isModerator = urlParams.get('mode') === 'mod' || !urlParams.has('session');
-
+      
       if (urlParams.has('session')) {
-        currentSession = urlParams.get('session');
+        currentSession = urlParams.get('session').toUpperCase().trim();
+        localStorage.setItem("microbitada_current_session", currentSession);
       }
 
-      if (isModerator) {
-        renderModeratorView();
+      const mode = urlParams.get('mode');
+      if (mode === 'attendee' || mode === 'student') {
+        currentView = 'attendee';
+      } else if (mode === 'admin') {
+        currentView = 'admin';
       } else {
-        renderStudentView();
+        currentView = 'mod';
       }
+
+      updateHeaderSessionDisplay();
+      renderCurrentView();
     }
 
-    // --- VISTA DE L'ALUMNE (MÒBIL) ---
-    function renderStudentView() {
-      const app = document.getElementById('app');
+    function updateHeaderSessionDisplay() {
+      const el = document.getElementById('header-session-name');
+      if (el) el.innerText = currentSession;
+    }
 
-      if (myStudentId) {
-        // Escoltar canvis en el seu propi registre per veure quin grup té assignat
-        const docRef = window.fs.doc(window.db, "sessions", currentSession, "students", myStudentId);
-        window.fs.onSnapshot(docRef, (docSnap) => {
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            if (data.group) {
-              app.innerHTML = `
-                <div class="assigned-view">
-                  <h2>¡Hola, ${data.name}!</h2>
-                  <p>Has estat assignat/da al:</p>
-                  <div class="group-badge-large">EQUIP ${data.group}</div>
-                  <p><i class="fa-solid fa-lock-open"></i> Troba els teus companys i comença l'Escape Room!</p>
-                </div>
-              `;
-            } else {
-              app.innerHTML = `
-                <div class="assigned-view">
-                  <h2>¡Hola, ${data.name}!</h2>
-                  <p style="margin-top: 15px; color: var(--accent-blue);">S'han rebut les teves dades correctament.</p>
-                  <p style="margin-top: 10px;">Esperant que el docent generi els grups...</p>
-                  <div style="margin-top:20px;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>
-                </div>
-              `;
-            }
-          } else {
-            localStorage.removeItem("microbit_student_id");
-            myStudentId = null;
-            renderStudentView();
-          }
-        });
+    // --- GESTIÓ DE VISTES I NAVEGACIÓ ---
+    function switchView(viewName) {
+      if (viewName === 'admin' && !isAdminUnlocked) {
+        openAdminLoginModal();
         return;
       }
 
-      app.innerHTML = `
-        <div class="register-card">
-          <h2 style="margin-bottom:20px; text-align:center;"><i class="fa-solid fa-user-plus"></i> Registre de Participant</h2>
-          
-          <div class="form-group">
-            <label for="studentName">El teu Nom i Cognom:</label>
-            <input type="text" id="studentName" placeholder="Ex: Marc García" autocomplete="off">
-          </div>
+      currentView = viewName;
 
-          <div class="form-group">
-            <label>Nivell d'experiència en micro:bit:</label>
-            <div class="level-options">
-              <button class="level-btn" onclick="selectLevel(1, this)">
-                <span>1. Novell (Mai he usat micro:bit)</span>
-                <span class="badge badge-1">Nivell 1</span>
+      // Actualitzar pestanyes actives
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById(`tab-${viewName}`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      // Actualitzar paràmetre URL sense recarregar la pàgina
+      const url = new URL(window.location);
+      url.searchParams.set('session', currentSession);
+      url.searchParams.set('mode', viewName);
+      window.history.replaceState({}, '', url);
+
+      renderCurrentView();
+    }
+
+    function renderCurrentView() {
+      // Netejar listeners anteriors si cal
+      if (activeModeratorUnsubscribe && currentView !== 'mod') {
+        activeModeratorUnsubscribe();
+        activeModeratorUnsubscribe = null;
+      }
+      if (activeStudentUnsubscribe && currentView !== 'attendee') {
+        activeStudentUnsubscribe();
+        activeStudentUnsubscribe = null;
+      }
+
+      if (currentView === 'mod') {
+        renderModeratorView();
+      } else if (currentView === 'attendee') {
+        renderStudentView();
+      } else if (currentView === 'admin') {
+        renderAdminView();
+      }
+    }
+
+    // --- VISTA DEL MODERADOR (PROJECCIÓ / TAULELL) ---
+    function renderModeratorView() {
+      const app = document.getElementById('app');
+      
+      // Assegurar existència de la sessió a Firestore
+      ensureSessionDocument(currentSession);
+
+      app.innerHTML = `
+        <div class="dashboard">
+          <!-- Panell QR -->
+          <div class="qr-card">
+            <h3><i class="fa-solid fa-qrcode" style="color:var(--accent-green);"></i> Accés Participants</h3>
+            <p>Escaneja amb el mòbil per triar el teu nivell d'experiència</p>
+            
+            <div class="qr-box" id="qrcode"></div>
+            
+            <div style="margin-bottom: 12px;">
+              <span style="font-size:0.85rem; color:var(--text-muted);">Sessió Activa:</span>
+              <div style="font-family:'Orbitron', sans-serif; font-weight:800; font-size:1.1rem; color:var(--accent-green);">${currentSession}</div>
+            </div>
+
+            <div class="qr-actions">
+              <button class="btn-secondary" onclick="copyStudentLink()">
+                <i class="fa-regular fa-copy"></i> Copiar enllaç
               </button>
-              <button class="level-btn" onclick="selectLevel(2, this)">
-                <span>2. Bàsic (Conec MakeCode/blocs)</span>
-                <span class="badge badge-2">Nivell 2</span>
-              </button>
-              <button class="level-btn" onclick="selectLevel(3, this)">
-                <span>3. Intermedi (Crea programes senzills)</span>
-                <span class="badge badge-3">Nivell 3</span>
-              </button>
-              <button class="level-btn" onclick="selectLevel(4, this)">
-                <span>4. Avançat (Programo bé / Sensors)</span>
-                <span class="badge badge-4">Nivell 4</span>
+              <button class="btn-secondary" onclick="openStudentTab()">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> Obrir en nova pestanya
               </button>
             </div>
           </div>
 
-          <button class="btn-main" onclick="registerStudent()">Enviar i Unir-me</button>
+          <!-- Controls i Llistat d'Equips -->
+          <div class="controls-panel">
+            <div class="stats-bar">
+              <div class="stat-card">
+                <div class="stat-label">Total Inscrits</div>
+                <div class="stat-value" id="count-total">0</div>
+              </div>
+              <div class="stat-card stat-l1">
+                <div class="stat-label">N1 Novell</div>
+                <div class="stat-value" id="count-l1">0</div>
+              </div>
+              <div class="stat-card stat-l2">
+                <div class="stat-label">N2 Bàsic</div>
+                <div class="stat-value" id="count-l2">0</div>
+              </div>
+              <div class="stat-card stat-l3">
+                <div class="stat-label">N3 Intermedi</div>
+                <div class="stat-value" id="count-l3">0</div>
+              </div>
+              <div class="stat-card stat-l4">
+                <div class="stat-label">N4 Avançat</div>
+                <div class="stat-value" id="count-l4">0</div>
+              </div>
+            </div>
+
+            <!-- Botons d'Acció -->
+            <div class="moderator-actions-bar">
+              <div class="input-group">
+                <label for="numGroups"><i class="fa-solid fa-users-line"></i> Nre. d'Equips:</label>
+                <input type="number" id="numGroups" class="input-number" value="4" min="2" max="25">
+              </div>
+
+              <button class="btn-main" onclick="generateHeterogeneousGroups()">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Generar Equips Heterogenis
+              </button>
+
+              <button class="btn-warning" onclick="resetGroupsOnly()" title="Reinicia l'assignació d'equips sense esborrar els alumnes">
+                <i class="fa-solid fa-rotate-left"></i> Desfer Equips
+              </button>
+
+              <button class="btn-danger" onclick="confirmResetCurrentSession()" title="Esborra tots els participants d'aquesta sessió">
+                <i class="fa-regular fa-trash-can"></i> Buidar
+              </button>
+            </div>
+
+            <!-- Contenidor dinàmic d'equips -->
+            <div id="groups-container" class="groups-grid">
+              <p style="grid-column: 1/-1; text-align:center; color:var(--text-muted); padding: 30px;">
+                Carregant participants en temps real...
+              </p>
+            </div>
+
+            <!-- Llista de participants en espera si encara no s'han agrupat -->
+            <div id="waiting-room-container" style="display:none; margin-top:15px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:16px;">
+              <h4 style="font-size:0.9rem; color:var(--text-muted); margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-user-clock" style="color:var(--accent-blue);"></i> Participants pendents d'assignar grup:
+              </h4>
+              <div id="waiting-students-tags" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Generar codi QR per a participants
+      const studentUrl = getStudentDirectUrl();
+      const qrTarget = document.getElementById("qrcode");
+      if (qrTarget) {
+        qrTarget.innerHTML = '';
+        new QRCode(qrTarget, {
+          text: studentUrl,
+          width: 175,
+          height: 175,
+          colorDark: "#080c14",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      }
+
+      // Escoltar en temps real la col·lecció de la sessió
+      const colRef = window.fs.collection(window.db, "sessions", currentSession, "students");
+      activeModeratorUnsubscribe = window.fs.onSnapshot(colRef, (snapshot) => {
+        const students = [];
+        snapshot.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
+        updateModeratorDashboard(students);
+      }, (err) => {
+        console.error("Error en escoltar estudiants:", err);
+        showToast("Error de connexió en temps real amb Firebase", "error");
+      });
+    }
+
+    function getStudentDirectUrl() {
+      const origin = window.location.origin;
+      const pathname = window.location.pathname;
+      return `${origin}${pathname}?session=${encodeURIComponent(currentSession)}&mode=attendee`;
+    }
+
+    function copyStudentLink() {
+      const url = getStudentDirectUrl();
+      navigator.clipboard.writeText(url).then(() => {
+        showToast("Enllaç copiat al porta-retalls!", "success");
+      }).catch(() => {
+        prompt("Copia l'enllaç manualment:", url);
+      });
+    }
+
+    function openStudentTab() {
+      window.open(getStudentDirectUrl(), '_blank');
+    }
+
+    function updateModeratorDashboard(students) {
+      // Comptadors
+      const totalEl = document.getElementById('count-total');
+      const l1El = document.getElementById('count-l1');
+      const l2El = document.getElementById('count-l2');
+      const l3El = document.getElementById('count-l3');
+      const l4El = document.getElementById('count-l4');
+
+      if (!totalEl) return;
+
+      totalEl.innerText = students.length;
+      l1El.innerText = students.filter(s => s.level === 1).length;
+      l2El.innerText = students.filter(s => s.level === 2).length;
+      l3El.innerText = students.filter(s => s.level === 3).length;
+      l4El.innerText = students.filter(s => s.level === 4).length;
+
+      // Agrupació d'estudiants
+      const groupsMap = {};
+      const unassigned = [];
+
+      students.forEach(s => {
+        if (s.group) {
+          if (!groupsMap[s.group]) groupsMap[s.group] = [];
+          groupsMap[s.group].push(s);
+        } else {
+          unassigned.push(s);
+        }
+      });
+
+      const container = document.getElementById('groups-container');
+      const waitingContainer = document.getElementById('waiting-room-container');
+      const waitingTags = document.getElementById('waiting-students-tags');
+
+      // Gestió d'alumnes pendents
+      if (unassigned.length > 0) {
+        waitingContainer.style.display = 'block';
+        waitingTags.innerHTML = unassigned.map(s => `
+          <span style="background:var(--bg-dark); border:1px solid var(--border-color); padding:4px 10px; border-radius:15px; font-size:0.85rem; display:inline-flex; align-items:center; gap:6px;">
+            <span>${escapeHtml(s.name)}</span>
+            <span class="badge badge-${s.level}">N${s.level}</span>
+          </span>
+        `).join('');
+      } else {
+        waitingContainer.style.display = 'none';
+      }
+
+      // Si no hi ha equips creats encara
+      if (Object.keys(groupsMap).length === 0) {
+        if (students.length === 0) {
+          container.innerHTML = `
+            <div style="grid-column: 1/-1; text-align:center; color:var(--text-muted); padding: 45px 20px; background:var(--bg-surface); border-radius:var(--radius-md); border:1px dashed var(--border-color);">
+              <i class="fa-solid fa-users-viewfinder fa-3x" style="color:var(--text-dim); margin-bottom:12px;"></i>
+              <h4 style="color:var(--text-main); margin-bottom:6px;">Esperant participants</h4>
+              <p style="font-size:0.9rem;">Escanegeu el codi QR amb els dispositius mòbils per començar a registrar-vos.</p>
+            </div>
+          `;
+        } else {
+          container.innerHTML = `
+            <div style="grid-column: 1/-1; text-align:center; color:var(--text-muted); padding: 40px 20px; background:var(--bg-surface); border-radius:var(--radius-md); border:1px solid var(--border-color);">
+              <i class="fa-solid fa-circle-check fa-2x" style="color:var(--accent-green); margin-bottom:10px;"></i>
+              <h4 style="color:var(--text-main); margin-bottom:6px;">Hi ha ${students.length} participants registrats</h4>
+              <p style="font-size:0.9rem; margin-bottom:15px;">Feu clic a <strong>"Generar Equips Heterogenis"</strong> per crear la distribució equilibrada.</p>
+            </div>
+          `;
+        }
+        return;
+      }
+
+      // Renderitzar targetes dels equips
+      container.innerHTML = '';
+      const sortedGroupIds = Object.keys(groupsMap).map(Number).sort((a, b) => a - b);
+
+      sortedGroupIds.forEach(gId => {
+        const members = groupsMap[gId];
+        const hasL4 = members.some(m => m.level === 4);
+
+        const card = document.createElement('div');
+        card.className = `group-card ${hasL4 ? 'has-advanced' : ''}`;
+        card.innerHTML = `
+          <div class="group-header">
+            <span class="group-title">EQUIP ${gId}</span>
+            <div style="display:flex; align-items:center; gap:6px;">
+              ${hasL4 ? '<i class="fa-solid fa-star" style="color:var(--accent-orange);" title="Compta amb membre d\'Avançat"></i>' : ''}
+              <span style="font-size:0.8rem; background:rgba(255,255,255,0.06); padding:2px 7px; border-radius:10px; color:var(--text-muted);">${members.length} membres</span>
+            </div>
+          </div>
+          <ul class="member-list">
+            ${members.map(m => `
+              <li class="member-item">
+                <span style="font-weight:500;">${escapeHtml(m.name)}</span>
+                <span class="badge badge-${m.level}">N${m.level}</span>
+              </li>
+            `).join('')}
+          </ul>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // --- ALGORISME D'AGRUPACIÓ HETEROGÈNIA ---
+    async function generateHeterogeneousGroups() {
+      const numGroupsInput = document.getElementById('numGroups');
+      const numGroups = parseInt(numGroupsInput.value) || 4;
+
+      if (numGroups < 2) {
+        showToast("El nombre mínim d'equips és 2", "error");
+        return;
+      }
+
+      try {
+        const colRef = window.fs.collection(window.db, "sessions", currentSession, "students");
+        const snapshot = await window.fs.getDocs(colRef);
+
+        let students = [];
+        snapshot.forEach(docSnap => students.push({ id: docSnap.id, ...docSnap.data() }));
+
+        if (students.length === 0) {
+          showToast("No hi ha participants registrats en aquesta sessió", "error");
+          return;
+        }
+
+        if (numGroups > students.length) {
+          showToast(`No pots crear ${numGroups} equips amb només ${students.length} participants`, "error");
+          return;
+        }
+
+        // Distribució heterogènia equilibrada (Snake Distribution per nivell)
+        const l4 = students.filter(s => s.level === 4);
+        const l3 = students.filter(s => s.level === 3);
+        const l2 = students.filter(s => s.level === 2);
+        const l1 = students.filter(s => s.level === 1);
+
+        const shuffle = arr => [...arr].sort(() => Math.random() - 0.5);
+
+        // Agrupem començant pels més avançats
+        const ordered = [
+          ...shuffle(l4),
+          ...shuffle(l3),
+          ...shuffle(l2),
+          ...shuffle(l1)
+        ];
+
+        const groups = Array.from({ length: numGroups }, () => []);
+
+        // Distribució serpentina (Snake) per maximitzar l'equilibri
+        ordered.forEach((student, index) => {
+          const round = Math.floor(index / numGroups);
+          const groupIndex = (round % 2 === 0) 
+            ? (index % numGroups) 
+            : (numGroups - 1 - (index % numGroups));
+          groups[groupIndex].push(student);
+        });
+
+        // Actualitzar a Firebase
+        for (let g = 0; g < groups.length; g++) {
+          const groupNumber = g + 1;
+          for (let student of groups[g]) {
+            await window.fs.updateDoc(window.fs.doc(window.db, "sessions", currentSession, "students", student.id), {
+              group: groupNumber
+            });
+          }
+        }
+
+        showToast(`S'han generat ${numGroups} equips heterogenis correctament!`, "success");
+      } catch (err) {
+        console.error("Error en generar equips:", err);
+        showToast("Error en generar els equips: " + err.message, "error");
+      }
+    }
+
+    async function resetGroupsOnly() {
+      if (!confirm("Vols desfer els equips assignats i deixar tots els alumnes com a pendents?")) return;
+
+      try {
+        const colRef = window.fs.collection(window.db, "sessions", currentSession, "students");
+        const snapshot = await window.fs.getDocs(colRef);
+
+        for (const docSnap of snapshot.docs) {
+          await window.fs.updateDoc(docSnap.ref, { group: null });
+        }
+
+        showToast("S'ha reiniciat l'assignació d'equips", "info");
+      } catch (err) {
+        showToast("Error en desfer equips: " + err.message, "error");
+      }
+    }
+
+    async function confirmResetCurrentSession() {
+      if (!confirm(`Segur que vols esborrar tots els participants de la sessió ${currentSession}? Aquesta acció no es pot desfer.`)) {
+        return;
+      }
+
+      try {
+        const colRef = window.fs.collection(window.db, "sessions", currentSession, "students");
+        const snapshot = await window.fs.getDocs(colRef);
+
+        for (const docSnap of snapshot.docs) {
+          await window.fs.deleteDoc(docSnap.ref);
+        }
+
+        showToast(`S'ha buidat la sessió ${currentSession}`, "success");
+      } catch (err) {
+        showToast("Error en buidar la sessió: " + err.message, "error");
+      }
+    }
+
+    // --- VISTA DE L'ALUMNE (MÒBIL / REGISTRE) ---
+    function renderStudentView() {
+      const app = document.getElementById('app');
+
+      // Si ja s'ha registrat amb anterioritat en aquest dispositiu
+      if (myStudentId) {
+        const docRef = window.fs.doc(window.db, "sessions", currentSession, "students", myStudentId);
+        
+        activeStudentUnsubscribe = window.fs.onSnapshot(docRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.group) {
+              app.innerHTML = `
+                <div class="student-view-container">
+                  <div class="assigned-view">
+                    <div style="font-size:2.4rem; color:var(--accent-green); margin-bottom:10px;">
+                      <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    <h2 style="font-size:1.6rem; font-weight:700;">¡Hola, ${escapeHtml(data.name)}!</h2>
+                    <p style="color:var(--text-muted); margin-top:8px;">Has estat assignat/da al grup:</p>
+                    
+                    <div class="group-badge-large">EQUIP ${data.group}</div>
+                    
+                    <p style="font-size:1.05rem; margin-top:10px; color:var(--accent-blue);">
+                      <i class="fa-solid fa-users"></i> Troba els teus companys i comença la micro:bitada!
+                    </p>
+
+                    <div style="margin-top:25px; padding-top:15px; border-top:1px solid var(--border-color);">
+                      <button class="btn-secondary" style="margin:0 auto;" onclick="reRegisterStudent()">
+                        <i class="fa-solid fa-arrow-rotate-left"></i> Modificar registre o sortir
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              `;
+            } else {
+              app.innerHTML = `
+                <div class="student-view-container">
+                  <div class="assigned-view">
+                    <div style="font-size:2.2rem; color:var(--accent-blue); margin-bottom:12px;">
+                      <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <h2 style="font-size:1.5rem;">¡Hola, ${escapeHtml(data.name)}!</h2>
+                    <p style="margin-top: 10px; color: var(--accent-green); font-weight:600;">S'han rebut les teves dades correctament.</p>
+                    <p style="margin-top: 12px; color: var(--text-muted); font-size:0.95rem;">Esperant que el docent generi els equips heterogenis...</p>
+                    
+                    <div style="margin: 25px 0;">
+                      <i class="fa-solid fa-spinner fa-spin fa-2x" style="color: var(--accent-green);"></i>
+                    </div>
+
+                    <div style="padding-top:15px; border-top:1px solid var(--border-color);">
+                      <button class="btn-secondary" style="margin:0 auto;" onclick="reRegisterStudent()">
+                        <i class="fa-solid fa-pen"></i> Canviar nom o nivell
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }
+          } else {
+            // El document ha estat esborrat pel moderador
+            localStorage.removeItem("microbit_student_id");
+            myStudentId = null;
+            renderStudentView();
+          }
+        }, (err) => {
+          console.error("Error en escoltar estat alumne:", err);
+        });
+        return;
+      }
+
+      // Formulari de registre de nou participant
+      app.innerHTML = `
+        <div class="student-view-container">
+          <div style="background:var(--bg-surface); padding:26px; border-radius:var(--radius-lg); border:1px solid var(--border-color); box-shadow:var(--shadow-subtle);">
+            <div style="text-align:center; margin-bottom:22px;">
+              <span class="badge" style="background:rgba(0, 230, 118, 0.15); color:var(--accent-green); margin-bottom:8px; border:1px solid rgba(0, 230, 118, 0.3);">
+                Sessió: ${currentSession}
+              </span>
+              <h2 style="font-size:1.45rem; font-family:'Orbitron', sans-serif;"><i class="fa-solid fa-user-plus"></i> Registre Participant</h2>
+              <p style="font-size:0.88rem; color:var(--text-muted); margin-top:4px;">Inscriu-te a la micro:bitada per rebre el teu equip</p>
+            </div>
+            
+            <div class="form-group">
+              <label for="studentName"><i class="fa-regular fa-user"></i> El teu Nom i Cognom:</label>
+              <input type="text" id="studentName" placeholder="Ex: Maria Puig" autocomplete="name" required>
+            </div>
+
+            <div class="form-group">
+              <label><i class="fa-solid fa-chart-simple"></i> Nivell d'experiència en micro:bit:</label>
+              <div class="level-options">
+                <button type="button" class="level-btn" onclick="selectLevel(1, this)">
+                  <div class="level-info">
+                    <span class="level-title">1. Novell</span>
+                    <span class="level-desc">Mai he fet servir una placa micro:bit</span>
+                  </div>
+                  <span class="badge badge-1">Nivell 1</span>
+                </button>
+
+                <button type="button" class="level-btn" onclick="selectLevel(2, this)">
+                  <div class="level-info">
+                    <span class="level-title">2. Bàsic</span>
+                    <span class="level-desc">Conec MakeCode i la programació per blocs</span>
+                  </div>
+                  <span class="badge badge-2">Nivell 2</span>
+                </button>
+
+                <button type="button" class="level-btn" onclick="selectLevel(3, this)">
+                  <div class="level-info">
+                    <span class="level-title">3. Intermedi</span>
+                    <span class="level-desc">He creat programes senzills i sé carregar-los</span>
+                  </div>
+                  <span class="badge badge-3">Nivell 3</span>
+                </button>
+
+                <button type="button" class="level-btn" onclick="selectLevel(4, this)">
+                  <div class="level-info">
+                    <span class="level-title">4. Avançat</span>
+                    <span class="level-desc">Domino sensors, ràdio, variables i lògica</span>
+                  </div>
+                  <span class="badge badge-4">Nivell 4</span>
+                </button>
+              </div>
+            </div>
+
+            <button class="btn-main" style="width:100%; padding:14px; font-size:1.05rem;" onclick="registerStudent()">
+              <i class="fa-solid fa-paper-plane"></i> Enviar i Unir-me
+            </button>
+          </div>
         </div>
       `;
     }
@@ -436,17 +1668,22 @@
       const name = nameInput.value.trim();
 
       if (!name) {
-        alert("Si us plau, escriu el teu nom.");
+        showToast("Si us plau, escriu el teu nom i cognom", "error");
+        nameInput.focus();
         return;
       }
       if (selectedLevel === 0) {
-        alert("Si us plau, selecciona el teu nivell d'experiència.");
+        showToast("Si us plau, selecciona el teu nivell d'experiència", "error");
         return;
       }
 
-      const newStudentId = "std_" + Math.random().toString(36).substr(2, 9);
-      
+      const newStudentId = "std_" + Math.random().toString(36).substring(2, 11);
+
       try {
+        // Assegurar sessió doc
+        await ensureSessionDocument(currentSession);
+
+        // Guardar alumne
         await window.fs.setDoc(window.fs.doc(window.db, "sessions", currentSession, "students", newStudentId), {
           name: name,
           level: selectedLevel,
@@ -457,168 +1694,535 @@
         localStorage.setItem("microbit_student_id", newStudentId);
         myStudentId = newStudentId;
         renderStudentView();
+        showToast("T'has inscrit correctament a la micro:bitada!", "success");
       } catch (err) {
-        alert("Error en desar el registre: " + err.message);
+        console.error("Error en registrar:", err);
+        showToast("Error en desar el registre: " + err.message, "error");
       }
     }
 
-    // --- VISTA DEL MODERADOR (PROJECTION / TAULELL) ---
-    function renderModeratorView() {
+    function reRegisterStudent() {
+      if (confirm("Vols cancel·lar aquest registre i inscriure't de nou?")) {
+        localStorage.removeItem("microbit_student_id");
+        myStudentId = null;
+        selectedLevel = 0;
+        renderStudentView();
+      }
+    }
+
+    // --- PANELL DE GESTIÓ DE DADES DE FIREBASE (ADMIN) ---
+    async function renderAdminView() {
       const app = document.getElementById('app');
-      
+
       app.innerHTML = `
-        <div class="dashboard">
-          <div class="qr-panel">
-            <h3>Accés Participants</h3>
-            <p style="font-size:0.85rem; color:#8b949e; margin-top:5px;">Escaneja per escollir el teu nivell</p>
-            <div id="qrcode"></div>
-            <p style="font-weight:bold; color:var(--accent-green);">Sessió: ${currentSession}</p>
+        <div class="admin-panel">
+          <!-- Barra Superior Admin -->
+          <div class="admin-header-bar">
+            <div class="admin-title-area">
+              <div class="brand-icon-box" style="border-color:var(--accent-purple); color:var(--accent-purple); background:rgba(129, 140, 248, 0.15);">
+                <i class="fa-solid fa-server"></i>
+              </div>
+              <div>
+                <h2>Gestor de Dades Firebase</h2>
+                <div style="font-size:0.84rem; color:var(--text-muted);">
+                  Base de dades: <code style="color:var(--accent-blue);">dinamica-escape-room-microbit</code>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:10px;">
+              <button class="btn-secondary" onclick="loadAndRenderAdminData()">
+                <i class="fa-solid fa-rotate"></i> Refrescar
+              </button>
+              <button class="btn-secondary" onclick="logoutAdmin()">
+                <i class="fa-solid fa-lock"></i> Tancar Sessió
+              </button>
+            </div>
           </div>
 
-          <div class="controls-panel">
-            <div class="stats-bar">
-              <div class="stat-card">
-                <div>Inscrits</div>
-                <div class="stat-value" id="count-total">0</div>
+          <!-- Llistat de Sessions a Firebase -->
+          <div class="sessions-shelf">
+            <div class="shelf-title">
+              <span><i class="fa-solid fa-folder-tree"></i> Sessions Trobades a Firebase</span>
+              <button class="btn-secondary" style="padding:4px 10px; font-size:0.8rem;" onclick="openSessionModal()">
+                <i class="fa-solid fa-plus"></i> Nova Sessió
+              </button>
+            </div>
+            
+            <div class="sessions-grid" id="admin-sessions-grid">
+              <p style="color:var(--text-muted); padding:10px;">Carregant sessions...</p>
+            </div>
+          </div>
+
+          <!-- Taula de Participants de la Sessió Seleccionada -->
+          <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:18px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+              <div>
+                <h3 style="font-size:1.15rem; font-family:'Orbitron', sans-serif;">
+                  Dades de la Sessió: <span style="color:var(--accent-green);">${currentSession}</span>
+                </h3>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-top:2px;" id="admin-session-summary">
+                  Calculant resum...
+                </p>
               </div>
-              <div class="stat-card">
-                <div>Nivell 4 (Avançats)</div>
-                <div class="stat-value" id="count-l4" style="color:var(--accent-orange);">0</div>
+
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button class="btn-secondary" onclick="exportSessionToCSV()">
+                  <i class="fa-solid fa-file-csv" style="color:var(--accent-green);"></i> Exportar CSV
+                </button>
+                <button class="btn-warning" onclick="resetGroupsOnly()">
+                  <i class="fa-solid fa-rotate-left"></i> Desfer Equips
+                </button>
+                <button class="btn-danger" onclick="deleteCurrentSessionFromAdmin()">
+                  <i class="fa-solid fa-trash-can"></i> Eliminar Sessió
+                </button>
               </div>
             </div>
 
-            <div style="display:flex; gap:15px; align-items:center;">
-              <label for="numGroups" style="margin:0;">Nombre de Grups a crear:</label>
-              <input type="number" id="numGroups" value="4" min="2" max="15" style="width:70px; padding:8px; border-radius:6px; background:#0d1117; color:white; border:1px solid var(--border-color);">
-              <button class="btn-main" style="margin:0; flex:1;" onclick="generateHeterogeneousGroups()">Generar Equips Heterogenis</button>
-              <button class="btn-danger" onclick="resetSession()">Netejar</button>
+            <!-- Filtres i Cerca -->
+            <div class="filter-bar">
+              <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <input type="text" class="search-input" id="admin-search-input" placeholder="Cercar participant..." oninput="handleAdminSearch(this.value)">
+                
+                <div style="display:flex; gap:6px;">
+                  <button class="btn-secondary filter-tag active" data-lvl="all" onclick="filterAdminByLevel('all', this)">Tots</button>
+                  <button class="btn-secondary filter-tag" data-lvl="1" onclick="filterAdminByLevel('1', this)">N1</button>
+                  <button class="btn-secondary filter-tag" data-lvl="2" onclick="filterAdminByLevel('2', this)">N2</button>
+                  <button class="btn-secondary filter-tag" data-lvl="3" onclick="filterAdminByLevel('3', this)">N3</button>
+                  <button class="btn-secondary filter-tag" data-lvl="4" onclick="filterAdminByLevel('4', this)">N4</button>
+                </div>
+              </div>
             </div>
 
-            <div id="groups-container" class="groups-grid"></div>
+            <!-- Taula d'Alumnes -->
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Participant</th>
+                    <th>Nivell</th>
+                    <th>Equip</th>
+                    <th>Data Registre</th>
+                    <th style="text-align:right;">Accions</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-students-tbody">
+                  <tr>
+                    <td colspan="5" style="text-align:center; color:var(--text-muted); padding:30px;">
+                      Carregant dades dels participants...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       `;
 
-      // Generar Codi QR
-      const studentUrl = window.location.origin + window.location.pathname + "?session=" + currentSession + "&mode=attendee";
-      new QRCode(document.getElementById("qrcode"), {
-        text: studentUrl,
-        width: 180,
-        height: 180
-      });
-
-      // Escoltar en Temps Real tots els participants
-      const colRef = window.fs.collection(window.db, "sessions", currentSession, "students");
-      window.fs.onSnapshot(colRef, (snapshot) => {
-        const students = [];
-        snapshot.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
-        
-        updateStatsAndDashboard(students);
-      });
+      await loadAndRenderAdminData();
     }
 
-    function updateStatsAndDashboard(students) {
-      document.getElementById('count-total').innerText = students.length;
-      document.getElementById('count-l4').innerText = students.filter(s => s.level === 4).length;
+    async function loadAndRenderAdminData() {
+      try {
+        const sessionsMap = {}; // sessionId -> { students: [] }
 
-      // Agrupar per equip si ja estan generats
-      const groupsMap = {};
-      students.forEach(s => {
-        if (s.group) {
-          if (!groupsMap[s.group]) groupsMap[s.group] = [];
-          groupsMap[s.group].push(s);
+        // 1. Llegir col·lecció 'sessions' per si hi ha documents de sessió
+        try {
+          const sessionsSnap = await window.fs.getDocs(window.fs.collection(window.db, "sessions"));
+          sessionsSnap.forEach(sDoc => {
+            sessionsMap[sDoc.id] = { id: sDoc.id, students: [] };
+          });
+        } catch (e) {
+          console.warn("Sessions collection query:", e);
         }
-      });
 
-      const container = document.getElementById('groups-container');
-      if (Object.keys(groupsMap).length === 0) {
-        container.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#8b949e;">Encara no s'han creat equips. Premeu "Generar Equips Heterogenis".</p>`;
-        return;
-      }
-
-      container.innerHTML = '';
-      Object.keys(groupsMap).sort((a,b) => a - b).forEach(gId => {
-        const members = groupsMap[gId];
-        const hasL4 = members.some(m => m.level === 4);
-
-        const card = document.createElement('div');
-        card.className = `group-card ${hasL4 ? 'has-advanced' : ''}`;
-        card.innerHTML = `
-          <div class="group-title">
-            <span>Grup ${gId}</span>
-            ${hasL4 ? '<i class="fa-solid fa-star" style="color:var(--accent-orange);" title="Te membre d\'Anvançat"></i>' : ''}
-          </div>
-          <ul class="member-list">
-            ${members.map(m => `
-              <li class="member-item">
-                <span>${m.name}</span>
-                <span class="badge badge-${m.level}">N${m.level}</span>
-              </li>
-            `).join('')}
-          </ul>
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    // ALGORISME D'AGRUPACIÓ HETEROGÈNIA
-    async function generateHeterogeneousGroups() {
-      const numGroups = parseInt(document.getElementById('numGroups').value) || 2;
-      
-      const colRef = window.fs.collection(window.db, "sessions", currentSession, "students");
-      const snapshot = await window.fs.getDocs(colRef);
-      
-      let students = [];
-      snapshot.forEach(docSnap => students.push({ id: docSnap.id, ...docSnap.data() }));
-
-      if (students.length === 0) {
-        alert("No hi ha participants inscrits.");
-        return;
-      }
-
-      // Separar per nivells (De Nivell 4 a Nivell 1)
-      const l4 = students.filter(s => s.level === 4);
-      const l3 = students.filter(s => s.level === 3);
-      const l2 = students.filter(s => s.level === 2);
-      const l1 = students.filter(s => s.level === 1);
-
-      // Barrejar arrays per a distribució aleatòria dins del mateix nivell
-      const shuffle = arr => arr.sort(() => Math.random() - 0.5);
-      
-      const orderedStudents = [
-        ...shuffle(l4),
-        ...shuffle(l3),
-        ...shuffle(l2),
-        ...shuffle(l1)
-      ];
-
-      // Repartiment Snake/Round-Robin per equilibrar
-      const groups = Array.from({ length: numGroups }, () => []);
-      
-      orderedStudents.forEach((student, index) => {
-        const groupIndex = index % numGroups;
-        groups[groupIndex].push(student);
-      });
-
-      // Guardar a Firebase
-      for (let g = 0; g < groups.length; g++) {
-        const groupNum = g + 1;
-        for (let student of groups[g]) {
-          await window.fs.updateDoc(window.fs.doc(window.db, "sessions", currentSession, "students", student.id), {
-            group: groupNum
+        // 2. Llegir tots els estudiants mitjançant collectionGroup
+        try {
+          const allStudentsSnap = await window.fs.getDocs(window.fs.collectionGroup(window.db, "students"));
+          allStudentsSnap.forEach(stDoc => {
+            const data = { id: stDoc.id, ...stDoc.data() };
+            const sId = stDoc.ref.parent && stDoc.ref.parent.parent ? stDoc.ref.parent.parent.id : currentSession;
+            if (!sessionsMap[sId]) {
+              sessionsMap[sId] = { id: sId, students: [] };
+            }
+            sessionsMap[sId].students.push(data);
+          });
+        } catch (e) {
+          console.warn("CollectionGroup students query error, utilitzant fallback directe:", e);
+          // Fallback: carregar només la sessió actual si collectionGroup fallés
+          if (!sessionsMap[currentSession]) {
+            sessionsMap[currentSession] = { id: currentSession, students: [] };
+          }
+          const currSnap = await window.fs.getDocs(window.fs.collection(window.db, "sessions", currentSession, "students"));
+          currSnap.forEach(stDoc => {
+            sessionsMap[currentSession].students.push({ id: stDoc.id, ...stDoc.data() });
           });
         }
+
+        // Assegurar que la sessió actual està a la llista
+        if (!sessionsMap[currentSession]) {
+          sessionsMap[currentSession] = { id: currentSession, students: [] };
+        }
+
+        cachedAdminData = sessionsMap;
+        renderAdminSessionCards();
+        renderAdminStudentsTable();
+      } catch (err) {
+        console.error("Error carregant dades d'administració:", err);
+        showToast("Error carregant dades de Firebase: " + err.message, "error");
       }
     }
 
-    async function resetSession() {
-      if (!confirm("Segur que vols esborrar tots els participants d'aquesta sessió?")) return;
+    function renderAdminSessionCards() {
+      const container = document.getElementById('admin-sessions-grid');
+      if (!container) return;
 
-      const colRef = window.fs.collection(window.db, "sessions", currentSession, "students");
-      const snapshot = await window.fs.getDocs(colRef);
-      snapshot.forEach(async (docSnap) => {
-        await window.fs.deleteDoc(docSnap.ref);
-      });
+      const sessionKeys = Object.keys(cachedAdminData).sort();
+      if (sessionKeys.length === 0) {
+        container.innerHTML = `<p style="color:var(--text-muted);">No s'han trobat sessions a Firebase.</p>`;
+        return;
+      }
+
+      container.innerHTML = sessionKeys.map(sId => {
+        const session = cachedAdminData[sId];
+        const count = session.students.length;
+        const countL4 = session.students.filter(s => s.level === 4).length;
+        const isActive = sId === currentSession;
+
+        return `
+          <div class="session-card ${isActive ? 'active-session' : ''}" data-session-id="${escapeHtml(sId)}" onclick="selectSessionFromAdmin(this.getAttribute('data-session-id'))">
+            <div class="session-card-header">
+              <span class="session-card-name">
+                <i class="fa-solid ${isActive ? 'fa-folder-open' : 'fa-folder'}" style="color:${isActive ? 'var(--accent-purple)' : 'var(--text-muted)'}; margin-right:6px;"></i>
+                ${escapeHtml(sId)}
+              </span>
+              ${isActive ? '<span class="badge" style="background:var(--accent-purple); color:white;">Activa</span>' : ''}
+            </div>
+            <div class="session-card-meta">
+              <span><i class="fa-regular fa-user"></i> ${count} participants</span>
+              <span><i class="fa-solid fa-star" style="color:var(--accent-orange);"></i> ${countL4} N4</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectSessionFromAdmin(sId) {
+      if (!sId) return;
+      currentSession = sId;
+      localStorage.setItem("microbitada_current_session", sId);
+      updateHeaderSessionDisplay();
+      renderAdminSessionCards();
+      renderAdminStudentsTable();
+    }
+
+    function renderAdminStudentsTable() {
+      const tbody = document.getElementById('admin-students-tbody');
+      const summaryEl = document.getElementById('admin-session-summary');
+      if (!tbody) return;
+
+      const currentData = cachedAdminData[currentSession] || { students: [] };
+      let students = currentData.students || [];
+
+      if (summaryEl) {
+        const groupsCount = new Set(students.map(s => s.group).filter(Boolean)).size;
+        summaryEl.innerHTML = `Total: <strong>${students.length}</strong> participants | Equips formats: <strong>${groupsCount}</strong>`;
+      }
+
+      // Filtrar per cerca
+      if (adminSearchQuery) {
+        const q = adminSearchQuery.toLowerCase();
+        students = students.filter(s => (s.name || '').toLowerCase().includes(q));
+      }
+
+      // Filtrar per nivell
+      if (adminLevelFilter !== 'all') {
+        const lvl = parseInt(adminLevelFilter);
+        students = students.filter(s => s.level === lvl);
+      }
+
+      if (students.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" style="text-align:center; color:var(--text-muted); padding:35px 20px;">
+              <i class="fa-regular fa-folder-open fa-2x" style="margin-bottom:8px; color:var(--text-dim);"></i>
+              <div>No s'han trobat participants amb aquests criteris.</div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      // Ordenar per data o per nom
+      students.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+      tbody.innerHTML = students.map(s => {
+        const formattedDate = s.timestamp 
+          ? new Date(s.timestamp).toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) 
+          : '—';
+
+        const groupBadge = s.group 
+          ? `<span class="badge" style="background:rgba(0, 229, 255, 0.15); color:var(--accent-blue); border:1px solid rgba(0, 229, 255, 0.3);">Equip ${s.group}</span>`
+          : `<span style="color:var(--text-dim); font-size:0.85rem;">Sense assignar</span>`;
+
+        return `
+          <tr>
+            <td>
+              <div style="font-weight:600;">${escapeHtml(s.name || 'Sense nom')}</div>
+              <div style="font-size:0.75rem; color:var(--text-dim); font-family:monospace;">${s.id}</div>
+            </td>
+            <td>
+              <span class="badge badge-${s.level}">Nivell ${s.level}</span>
+            </td>
+            <td>${groupBadge}</td>
+            <td style="color:var(--text-muted); font-size:0.85rem;">${formattedDate}</td>
+            <td style="text-align:right;">
+              <button class="action-icon-btn" title="Eliminar aquest participant" onclick="deleteSingleStudent('${s.id}')">
+                <i class="fa-regular fa-trash-can"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function handleAdminSearch(val) {
+      adminSearchQuery = val.trim();
+      renderAdminStudentsTable();
+    }
+
+    function filterAdminByLevel(lvl, btn) {
+      adminLevelFilter = lvl;
+      document.querySelectorAll('.filter-tag').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderAdminStudentsTable();
+    }
+
+    async function deleteSingleStudent(studentId) {
+      const currentData = cachedAdminData[currentSession] || { students: [] };
+      const student = (currentData.students || []).find(s => s.id === studentId);
+      const studentName = student ? (student.name || 'Participant') : studentId;
+
+      if (!confirm(`Segur que vols eliminar a "${studentName}" de Firebase?`)) {
+        return;
+      }
+
+      try {
+        await window.fs.deleteDoc(window.fs.doc(window.db, "sessions", currentSession, "students", studentId));
+        showToast(`Participant ${studentName} eliminat`, "success");
+        await loadAndRenderAdminData();
+      } catch (err) {
+        showToast("Error en eliminar participant: " + err.message, "error");
+      }
+    }
+
+    function deleteCurrentSessionFromAdmin() {
+      deleteSessionFromAdmin(currentSession);
+    }
+
+    async function deleteSessionFromAdmin(sId) {
+      if (!confirm(`Segur que vols eliminar COMPLETAMENT la sessió "${sId}" i tots els seus participants de Firebase?`)) {
+        return;
+      }
+
+      try {
+        const snap = await window.fs.getDocs(window.fs.collection(window.db, "sessions", sId, "students"));
+        for (const docSnap of snap.docs) {
+          await window.fs.deleteDoc(docSnap.ref);
+        }
+        await window.fs.deleteDoc(window.fs.doc(window.db, "sessions", sId));
+
+        showToast(`Sessió ${sId} eliminada correctament`, "success");
+        
+        // Si hem eliminat la sessió actual, passar a AULA-1
+        if (sId === currentSession) {
+          currentSession = "AULA-1";
+          localStorage.setItem("microbitada_current_session", "AULA-1");
+          updateHeaderSessionDisplay();
+        }
+
+        await loadAndRenderAdminData();
+      } catch (err) {
+        showToast("Error en eliminar sessió: " + err.message, "error");
+      }
+    }
+
+    function exportSessionToCSV() {
+      const currentData = cachedAdminData[currentSession] || { students: [] };
+      const students = currentData.students || [];
+
+      if (students.length === 0) {
+        showToast("No hi ha dades per exportar en aquesta sessió", "error");
+        return;
+      }
+
+      const headers = ["ID", "Nom", "Nivell", "Equip", "Data Registre"];
+      const rows = students.map(s => [
+        s.id,
+        `"${(s.name || '').replace(/"/g, '""')}"`,
+        s.level,
+        s.group || "Sense equip",
+        s.timestamp ? new Date(s.timestamp).toLocaleString('ca-ES') : ""
+      ]);
+
+      const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(r => r.join(","))].join("\r\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `microbitada_${currentSession}_${Date.now()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showToast("Fitxer CSV descarregat correctament", "success");
+    }
+
+    // --- AUTENTICACIÓ DE L'ADMINISTRADOR ---
+    function openAdminLoginModal() {
+      const modal = document.getElementById('admin-login-modal');
+      const input = document.getElementById('admin-pwd-input');
+      const errEl = document.getElementById('admin-pwd-error');
+      
+      if (errEl) errEl.style.display = 'none';
+      if (input) input.value = '';
+      if (modal) modal.style.display = 'flex';
+      setTimeout(() => input && input.focus(), 150);
+    }
+
+    function closeAdminLoginModal() {
+      const modal = document.getElementById('admin-login-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function verifyAdminPassword() {
+      const input = document.getElementById('admin-pwd-input');
+      const errEl = document.getElementById('admin-pwd-error');
+      const pwd = input.value;
+
+      if (pwd === ADMIN_PASSWORD) {
+        isAdminUnlocked = true;
+        sessionStorage.setItem("microbit_admin_auth", "true");
+        closeAdminLoginModal();
+        showToast("Accés concedit a l'administració", "success");
+        switchView('admin');
+      } else {
+        if (errEl) errEl.style.display = 'block';
+        input.classList.add('shake');
+        setTimeout(() => input.classList.remove('shake'), 400);
+      }
+    }
+
+    // Tecla Enter al camp de contrasenya
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const modal = document.getElementById('admin-login-modal');
+        if (modal && modal.style.display === 'flex') {
+          verifyAdminPassword();
+        }
+      }
+    });
+
+    function logoutAdmin() {
+      isAdminUnlocked = false;
+      sessionStorage.removeItem("microbit_admin_auth");
+      showToast("Sessió d'administració tancada", "info");
+      switchView('mod');
+    }
+
+    function togglePasswordVisibility(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+      } else {
+        input.type = 'password';
+        btn.innerHTML = '<i class="fa-solid fa-eye"></i>';
+      }
+    }
+
+    // --- GESTIÓ DEL MODAL DE SESSIÓ ---
+    function openSessionModal() {
+      const modal = document.getElementById('change-session-modal');
+      const input = document.getElementById('new-session-input');
+      if (input) input.value = currentSession;
+      if (modal) modal.style.display = 'flex';
+      setTimeout(() => input && input.focus(), 100);
+    }
+
+    function closeSessionModal() {
+      const modal = document.getElementById('change-session-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    async function confirmChangeSession() {
+      const input = document.getElementById('new-session-input');
+      const newSession = input.value.trim().toUpperCase();
+
+      if (!newSession) {
+        showToast("Escriu un nom per a la sessió", "error");
+        return;
+      }
+
+      currentSession = newSession;
+      localStorage.setItem("microbitada_current_session", currentSession);
+      updateHeaderSessionDisplay();
+      closeSessionModal();
+
+      await ensureSessionDocument(currentSession);
+      showToast(`Sessió canviada a ${currentSession}`, "success");
+
+      // Actualitzar URL
+      const url = new URL(window.location);
+      url.searchParams.set('session', currentSession);
+      window.history.replaceState({}, '', url);
+
+      renderCurrentView();
+    }
+
+    async function ensureSessionDocument(sId) {
+      try {
+        await window.fs.setDoc(window.fs.doc(window.db, "sessions", sId), {
+          name: sId,
+          lastActive: Date.now()
+        }, { merge: true });
+      } catch (e) {
+        console.warn("No s'ha pogut actualitzar el document arrel de sessió:", e);
+      }
+    }
+
+    // --- UTILITATS ---
+    function showToast(message, type = "info") {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      
+      let icon = "fa-solid fa-info-circle";
+      if (type === "success") icon = "fa-solid fa-circle-check";
+      if (type === "error") icon = "fa-solid fa-triangle-exclamation";
+
+      toast.innerHTML = `<i class="${icon}"></i> <span>${escapeHtml(message)}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
     }
   </script>
 </body>
