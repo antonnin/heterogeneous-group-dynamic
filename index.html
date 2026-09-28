@@ -1,1213 +1,625 @@
 <!DOCTYPE html>
 <html lang="ca">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Micro:bit Escape Room - Organitzador d'Equips Heterogenis</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grups Heterogenis - Escape Room micro:bit</title>
+  
+  <!-- Font i Icones -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Libreria QRCode -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase SDK Modular -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+      getFirestore, collection, doc, setDoc, onSnapshot, updateDoc, deleteDoc, getDocs 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // Configuració oficial de Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyAIsRgPh7d3pN5gEdwenOUKJZyp3cYIPVQ",
+      authDomain: "dinamica-escape-room-microbit.firebaseapp.com",
+      projectId: "dinamica-escape-room-microbit",
+      storageBucket: "dinamica-escape-room-microbit.firebasestorage.app",
+      messagingSenderId: "888747913131",
+      appId: "1:888747913131:web:5d98e15807534bba892cee"
+    };
+
+    // Inicialitzar Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Exposar al scope global
+    window.db = db;
+    window.fs = { collection, doc, setDoc, onSnapshot, updateDoc, deleteDoc, getDocs };
+  </script>
+
+  <style>
+    :root {
+      --bg-dark: #0d1117;
+      --card-bg: #161b22;
+      --accent-green: #00e676;
+      --accent-blue: #00e5ff;
+      --accent-orange: #ff9100;
+      --accent-red: #ff1744;
+      --text-light: #f0f6fc;
+      --border-color: #30363d;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <!-- QRCode Generator Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
 
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    header {
+      text-align: center;
+      margin-bottom: 25px;
+      width: 100%;
+      max-width: 1000px;
+    }
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            bg: '#0B0F17',
-                            card: '#161F30',
-                            accent: '#06B6D4',
-                            neonGreen: '#10B981',
-                            neonPurple: '#A855F7',
-                            neonPink: '#EC4899',
-                            gold: '#F59E0B'
-                        }
-                    },
-                    fontFamily: {
-                        mono: ['Share Tech Mono', 'monospace'],
-                        sans: ['Inter', 'sans-serif']
-                    }
-                }
-            }
-        }
-    </script>
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+      color: var(--accent-green);
+      font-size: 2.2rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+      text-shadow: 0 0 10px rgba(0, 230, 118, 0.3);
+    }
 
-    <style>
-        body {
-            background-color: #0B0F17;
-            color: #F8FAFC;
-            font-family: 'Inter', sans-serif;
-        }
-        .font-tech {
-            font-family: 'Share Tech Mono', monospace;
-        }
-        .glow-cyan {
-            box-shadow: 0 0 25px rgba(6, 182, 212, 0.3);
-        }
-        .glow-purple {
-            box-shadow: 0 0 25px rgba(168, 85, 247, 0.3);
-        }
-        .glow-pink {
-            box-shadow: 0 0 25px rgba(236, 72, 153, 0.3);
-        }
-        .led-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 3px;
-            width: 42px;
-            height: 42px;
-        }
-        .led {
-            background-color: #1E293B;
-            border-radius: 2px;
-        }
-        .led.active {
-            background-color: #EC4899;
-            box-shadow: 0 0 5px #EC4899;
-        }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0F172A;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #06B6D4;
-        }
-    </style>
+    .subtitle {
+      color: #8b949e;
+      font-size: 1rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1100px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+
+    /* Formulari de registre (Mòbil) */
+    .register-card {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--accent-blue);
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 15px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: #0d1117;
+      color: white;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
+    }
+
+    .level-options {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .level-btn {
+      padding: 12px 15px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: #21262d;
+      color: white;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .level-btn:hover { background: #30363d; }
+    .level-btn.selected {
+      border-color: var(--accent-green);
+      background: rgba(0, 230, 118, 0.15);
+      font-weight: bold;
+    }
+
+    .badge {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+
+    .badge-1 { background: #334155; color: #cbd5e1; }
+    .badge-2 { background: #1e3a8a; color: #93c5fd; }
+    .badge-3 { background: #065f46; color: #6ee7b7; }
+    .badge-4 { background: #78350f; color: #fde047; }
+
+    .btn-main {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent-green);
+      color: #000;
+      font-weight: bold;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: transform 0.1s ease, background 0.2s ease;
+    }
+
+    .btn-main:hover {
+      background: #00c853;
+      transform: translateY(-2px);
+    }
+
+    /* Projecció / Taulell del Moderador */
+    .dashboard {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 25px;
+    }
+
+    @media (max-width: 850px) {
+      .dashboard { grid-template-columns: 1fr; }
+    }
+
+    .qr-panel {
+      background: #0d1117;
+      padding: 20px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #qrcode {
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      margin: 15px 0;
+    }
+
+    .controls-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .stats-bar {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .stat-card {
+      background: #0d1117;
+      padding: 12px 18px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      flex: 1;
+      min-width: 120px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--accent-blue);
+    }
+
+    .groups-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .group-card {
+      background: #0d1117;
+      border: 1px solid var(--border-color);
+      border-top: 4px solid var(--accent-blue);
+      border-radius: 8px;
+      padding: 15px;
+    }
+
+    .group-card.has-advanced {
+      border-top-color: var(--accent-green);
+    }
+
+    .group-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .member-list {
+      list-style: none;
+    }
+
+    .member-item {
+      padding: 6px 0;
+      border-bottom: 1px solid #21262d;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.95rem;
+    }
+
+    .member-item:last-child { border-bottom: none; }
+
+    .assigned-view {
+      text-align: center;
+      padding: 30px 10px;
+    }
+
+    .group-badge-large {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 3rem;
+      color: var(--accent-green);
+      margin: 20px 0;
+      text-shadow: 0 0 15px rgba(0, 230, 118, 0.4);
+    }
+
+    .btn-danger {
+      background: var(--accent-red);
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-slate-900">
+<body>
 
-    <header class="border-b border-slate-800/80 bg-slate-900/90 backdrop-blur-md sticky top-0 z-50 px-4 py-3">
-        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <div class="led-grid p-1 bg-slate-950 rounded border border-slate-800" id="headerLed">
-                    <div class="led active"></div><div class="led"></div><div class="led active"></div><div class="led"></div><div class="led active"></div>
-                    <div class="led active"></div><div class="led active"></div><div class="led active"></div><div class="led"></div><div class="led active"></div>
-                    <div class="led active"></div><div class="led active"></div><div class="led active"></div><div class="led"></div><div class="led active"></div>
-                    <div class="led"></div><div class="led active"></div><div class="led"></div><div class="led"></div><div class="led active"></div>
-                    <div class="led"></div><div class="led"></div><div class="led"></div><div class="led"></div><div class="led active"></div>
+  <header>
+    <h1><i class="fa-solid fa-microchip"></i> Escape Room micro:bit</h1>
+    <p class="subtitle">Generador de Grups Heterogenis en Temps Real</p>
+  </header>
+
+  <div class="container" id="app">
+    <!-- Es carregarà dinàmicament segons el mode (Client / Moderador) -->
+    <p style="text-align: center;">Carregant aplicació...</p>
+  </div>
+
+  <script>
+    // Variables Globals
+    let currentSession = "AULA-1";
+    let selectedLevel = 0;
+    let myStudentId = localStorage.getItem("microbit_student_id") || null;
+
+    // Inicialitzar la vista quan Firebase estigui a punt
+    window.addEventListener('load', () => {
+      const checkFirebase = setInterval(() => {
+        if (window.db && window.fs) {
+          clearInterval(checkFirebase);
+          initApp();
+        }
+      }, 100);
+    });
+
+    function initApp() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const isModerator = urlParams.get('mode') === 'mod' || !urlParams.has('session');
+
+      if (urlParams.has('session')) {
+        currentSession = urlParams.get('session');
+      }
+
+      if (isModerator) {
+        renderModeratorView();
+      } else {
+        renderStudentView();
+      }
+    }
+
+    // --- VISTA DE L'ALUMNE (MÒBIL) ---
+    function renderStudentView() {
+      const app = document.getElementById('app');
+
+      if (myStudentId) {
+        // Escoltar canvis en el seu propi registre per veure quin grup té assignat
+        const docRef = window.fs.doc(window.db, "sessions", currentSession, "students", myStudentId);
+        window.fs.onSnapshot(docRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.group) {
+              app.innerHTML = `
+                <div class="assigned-view">
+                  <h2>¡Hola, ${data.name}!</h2>
+                  <p>Has estat assignat/da al:</p>
+                  <div class="group-badge-large">EQUIP ${data.group}</div>
+                  <p><i class="fa-solid fa-lock-open"></i> Troba els teus companys i comença l'Escape Room!</p>
                 </div>
-                <div>
-                    <h1 class="text-xl font-black tracking-tight text-white flex items-center gap-2">
-                        Micro:bit <span class="text-cyan-400 font-tech">Escape Room</span>
-                    </h1>
-                    <p class="text-xs text-slate-400 flex items-center gap-2">
-                        Assignador d'Equips Heterogenis
-                        <span id="firebaseStatusDot" class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30">
-                            ● Mode Local
-                        </span>
-                    </p>
+              `;
+            } else {
+              app.innerHTML = `
+                <div class="assigned-view">
+                  <h2>¡Hola, ${data.name}!</h2>
+                  <p style="margin-top: 15px; color: var(--accent-blue);">S'han rebut les teves dades correctament.</p>
+                  <p style="margin-top: 10px;">Esperant que el docent generi els grups...</p>
+                  <div style="margin-top:20px;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>
                 </div>
+              `;
+            }
+          } else {
+            localStorage.removeItem("microbit_student_id");
+            myStudentId = null;
+            renderStudentView();
+          }
+        });
+        return;
+      }
+
+      app.innerHTML = `
+        <div class="register-card">
+          <h2 style="margin-bottom:20px; text-align:center;"><i class="fa-solid fa-user-plus"></i> Registre de Participant</h2>
+          
+          <div class="form-group">
+            <label for="studentName">El teu Nom i Cognom:</label>
+            <input type="text" id="studentName" placeholder="Ex: Marc García" autocomplete="off">
+          </div>
+
+          <div class="form-group">
+            <label>Nivell d'experiència en micro:bit:</label>
+            <div class="level-options">
+              <button class="level-btn" onclick="selectLevel(1, this)">
+                <span>1. Novell (Mai he usat micro:bit)</span>
+                <span class="badge badge-1">Nivell 1</span>
+              </button>
+              <button class="level-btn" onclick="selectLevel(2, this)">
+                <span>2. Bàsic (Conec MakeCode/blocs)</span>
+                <span class="badge badge-2">Nivell 2</span>
+              </button>
+              <button class="level-btn" onclick="selectLevel(3, this)">
+                <span>3. Intermedi (Crea programes senzills)</span>
+                <span class="badge badge-3">Nivell 3</span>
+              </button>
+              <button class="level-btn" onclick="selectLevel(4, this)">
+                <span>4. Avançat (Programo bé / Sensors)</span>
+                <span class="badge badge-4">Nivell 4</span>
+              </button>
             </div>
+          </div>
 
-            <!-- Header Controls & Tabs -->
-            <div class="flex items-center gap-2">
-                <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 text-sm">
-                    <button id="btnTabProjector" onclick="switchView('projector')" class="flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-semibold transition-all bg-cyan-500 text-slate-950 shadow">
-                        <i data-lucide="tv" class="w-4 h-4"></i>
-                        <span class="hidden sm:inline">Projector</span>
-                    </button>
-                    <button id="btnTabAttendee" onclick="switchView('attendee')" class="flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-semibold text-slate-400 hover:text-white transition-all">
-                        <i data-lucide="smartphone" class="w-4 h-4"></i>
-                        <span class="hidden sm:inline">Participant</span>
-                    </button>
-                </div>
-
-                <button onclick="openConfigModal()" title="Configuració Firebase" class="p-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 hover:text-cyan-400 hover:border-cyan-500/50 transition-all">
-                    <i data-lucide="settings" class="w-5 h-5"></i>
-                </button>
-            </div>
+          <button class="btn-main" onclick="registerStudent()">Enviar i Unir-me</button>
         </div>
-    </header>
+      `;
+    }
 
-    <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full">
+    function selectLevel(lvl, btn) {
+      selectedLevel = lvl;
+      document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    }
 
-        <!-- ========================================== -->
-        <!-- VIEW 1: PROJECTOR / ADMIN DASHBOARD MODE   -->
-        <!-- ========================================== -->
-        <section id="viewProjector" class="space-y-8">
-            
-            <!-- Controls Grid: QR Code, Live Stats, Group Controls -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                
-                <!-- Card 1: QR Code Scanner for Attendees -->
-                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 flex flex-col items-center text-center justify-between shadow-xl relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 to-purple-500"></div>
-                    <div class="mb-3 w-full">
-                        <div class="flex items-center justify-between">
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                                <i data-lucide="qr-code" class="w-3.5 h-3.5"></i> Escaneja i Dissenya
-                            </span>
-                            <span class="font-tech text-xs bg-slate-950 px-2 py-0.5 rounded text-cyan-400 border border-slate-800">
-                                Codi: <strong id="roomCodeDisplay">ROOM1</strong>
-                            </span>
-                        </div>
-                        <h2 class="text-base font-bold mt-2 text-white">Escaneja per Registrar-te</h2>
-                        <p class="text-xs text-slate-400 mt-0.5">Connecta't des del teu mòbil per indicar el teu nivell</p>
-                    </div>
+    async function registerStudent() {
+      const nameInput = document.getElementById('studentName');
+      const name = nameInput.value.trim();
 
-                    <!-- QR Box -->
-                    <div class="bg-white p-3 rounded-xl shadow-inner border-4 border-slate-800 my-1">
-                        <div id="qrcode"></div>
-                    </div>
+      if (!name) {
+        alert("Si us plau, escriu el teu nom.");
+        return;
+      }
+      if (selectedLevel === 0) {
+        alert("Si us plau, selecciona el teu nivell d'experiència.");
+        return;
+      }
 
-                    <div class="w-full mt-3 pt-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
-                        <span class="truncate max-w-[180px] font-mono text-[11px]" id="currentUrlText">Carregant enllaç...</span>
-                        <button onclick="copyAppUrl()" class="text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1 transition-colors">
-                            <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copiar
-                        </button>
-                    </div>
-                </div>
+      const newStudentId = "std_" + Math.random().toString(36).substr(2, 9);
+      
+      try {
+        await window.fs.setDoc(window.fs.doc(window.db, "sessions", currentSession, "students", newStudentId), {
+          name: name,
+          level: selectedLevel,
+          group: null,
+          timestamp: Date.now()
+        });
 
-                <!-- Card 2: Live Registration Breakdown -->
-                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between shadow-xl">
-                    <div>
-                        <div class="flex items-center justify-between mb-3">
-                            <h2 class="text-base font-bold flex items-center gap-2 text-white">
-                                <i data-lucide="users" class="text-cyan-400 w-5 h-5"></i> Participants Registrats
-                            </h2>
-                            <span id="statTotalBadge" class="text-2xl font-tech font-bold text-cyan-400 bg-cyan-950/60 border border-cyan-800/50 px-3 py-0.5 rounded-lg">
-                                0
-                            </span>
-                        </div>
+        localStorage.setItem("microbit_student_id", newStudentId);
+        myStudentId = newStudentId;
+        renderStudentView();
+      } catch (err) {
+        alert("Error en desar el registre: " + err.message);
+      }
+    }
 
-                        <!-- Skill levels breakdown -->
-                        <div class="space-y-2.5">
-                            <div>
-                                <div class="flex justify-between text-xs mb-1">
-                                    <span class="text-purple-400 font-semibold flex items-center gap-1">
-                                        <i data-lucide="wand-2" class="w-3.5 h-3.5"></i> Nivell 4 (Avançat / Mag)
-                                    </span>
-                                    <span id="countL4" class="font-tech text-white">0</span>
-                                </div>
-                                <div class="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
-                                    <div id="barL4" class="bg-purple-500 h-full transition-all duration-500" style="width: 0%"></div>
-                                </div>
-                            </div>
+    // --- VISTA DEL MODERADOR (PROJECTION / TAULELL) ---
+    function renderModeratorView() {
+      const app = document.getElementById('app');
+      
+      app.innerHTML = `
+        <div class="dashboard">
+          <div class="qr-panel">
+            <h3>Accés Participants</h3>
+            <p style="font-size:0.85rem; color:#8b949e; margin-top:5px;">Escaneja per escollir el teu nivell</p>
+            <div id="qrcode"></div>
+            <p style="font-weight:bold; color:var(--accent-green);">Sessió: ${currentSession}</p>
+          </div>
 
-                            <div>
-                                <div class="flex justify-between text-xs mb-1">
-                                    <span class="text-cyan-400 font-semibold flex items-center gap-1">
-                                        <i data-lucide="zap" class="w-3.5 h-3.5"></i> Nivell 3 (Intermedi)
-                                    </span>
-                                    <span id="countL3" class="font-tech text-white">0</span>
-                                </div>
-                                <div class="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
-                                    <div id="barL3" class="bg-cyan-400 h-full transition-all duration-500" style="width: 0%"></div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div class="flex justify-between text-xs mb-1">
-                                    <span class="text-emerald-400 font-semibold flex items-center gap-1">
-                                        <i data-lucide="code" class="w-3.5 h-3.5"></i> Nivell 2 (Bàsic / Modifica)
-                                    </span>
-                                    <span id="countL2" class="font-tech text-white">0</span>
-                                </div>
-                                <div class="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
-                                    <div id="barL2" class="bg-emerald-400 h-full transition-all duration-500" style="width: 0%"></div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div class="flex justify-between text-xs mb-1">
-                                    <span class="text-slate-400 font-semibold flex items-center gap-1">
-                                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Nivell 1 (Sense experiència)
-                                    </span>
-                                    <span id="countL1" class="font-tech text-white">0</span>
-                                </div>
-                                <div class="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
-                                    <div id="barL1" class="bg-slate-500 h-full transition-all duration-500" style="width: 0%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400">
-                        <span id="syncStatusText">Estat: <span class="text-emerald-400 font-semibold">● Escoltant dades</span></span>
-                        <button onclick="addDemoParticipants()" class="text-slate-400 hover:text-cyan-400 underline transition-colors">
-                            + Afegir Demo
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Card 3: Heterogeneous Generator Controls -->
-                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between shadow-xl">
-                    <div>
-                        <h2 class="text-base font-bold flex items-center gap-2 mb-1.5 text-white">
-                            <i data-lucide="cpu" class="text-pink-500 w-5 h-5"></i> Generador d'Equips
-                        </h2>
-                        <p class="text-xs text-slate-400 mb-3">Reparteix els de <strong class="text-purple-400">Nivell 4 (Mags)</strong> primer de forma equitativa per garantir autèntica mentoria a l'Escape Room.</p>
-
-                        <!-- Number of Groups Selector -->
-                        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 mb-3">
-                            <label for="numGroupsInput" class="block text-xs font-semibold text-slate-300 mb-1.5">Nombre d'Equips a formar:</label>
-                            <div class="flex items-center gap-3">
-                                <button onclick="adjustGroupCount(-1)" class="w-10 h-10 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-bold text-lg flex items-center justify-center transition-colors border border-slate-700">-</button>
-                                <input type="number" id="numGroupsInput" value="4" min="1" max="25" class="w-full text-center bg-slate-900 border border-slate-700 rounded-lg py-1.5 font-tech text-2xl font-bold text-cyan-400 focus:outline-none focus:border-cyan-500">
-                                <button onclick="adjustGroupCount(1)" class="w-10 h-10 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-bold text-lg flex items-center justify-center transition-colors border border-slate-700">+</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="space-y-2">
-                        <button onclick="generateHeterogeneousGroups()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold py-3 px-4 rounded-xl shadow-lg glow-cyan transition-all transform active:scale-95 flex items-center justify-center gap-2 text-sm">
-                            <i data-lucide="shuffle" class="w-4 h-4"></i>
-                            <span>GENERAR EQUIPS HETEROGENIS</span>
-                        </button>
-
-                        <div class="flex gap-2">
-                            <button onclick="exportGroupsCSV()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold py-2 px-3 rounded-lg border border-slate-700 transition-colors flex items-center justify-center gap-1.5">
-                                <i data-lucide="download" class="w-3.5 h-3.5"></i> Exportar CSV
-                            </button>
-                            <button onclick="clearAllData()" class="bg-slate-800 hover:bg-rose-950 hover:text-rose-300 text-slate-400 text-xs font-semibold py-2 px-3 rounded-lg border border-slate-700 transition-colors flex items-center justify-center gap-1.5">
-                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Netejar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
+          <div class="controls-panel">
+            <div class="stats-bar">
+              <div class="stat-card">
+                <div>Inscrits</div>
+                <div class="stat-value" id="count-total">0</div>
+              </div>
+              <div class="stat-card">
+                <div>Nivell 4 (Avançats)</div>
+                <div class="stat-value" id="count-l4" style="color:var(--accent-orange);">0</div>
+              </div>
             </div>
 
-            <div id="projectionArea" class="mt-8">
-                <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-                    <div>
-                        <h2 class="text-2xl font-black text-white flex items-center gap-3">
-                            <i data-lucide="layout-grid" class="text-cyan-400"></i> Distribució de la Missió
-                        </h2>
-                        <p class="text-xs text-slate-400">Projecció per a l'aula / Escape Room micro:bit</p>
-                    </div>
-                    <span id="groupStatusBadge" class="text-xs font-semibold px-3 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
-                        Esperant ordre de generació...
-                    </span>
-                </div>
-
-                <!-- Group Cards Grid -->
-                <div id="groupsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    <div class="col-span-full bg-slate-900/50 border border-dashed border-slate-800 rounded-2xl p-12 text-center">
-                        <i data-lucide="bot" class="w-12 h-12 text-slate-600 mx-auto mb-3"></i>
-                        <p class="text-slate-400 font-medium">Encara no s'han creat els equips.</p>
-                        <p class="text-xs text-slate-500 mt-1">Demanat als alumnes que escanegin el codi QR i fessin clic a "Generar Equip Heterogenis".</p>
-                    </div>
-                </div>
+            <div style="display:flex; gap:15px; align-items:center;">
+              <label for="numGroups" style="margin:0;">Nombre de Grups a crear:</label>
+              <input type="number" id="numGroups" value="4" min="2" max="15" style="width:70px; padding:8px; border-radius:6px; background:#0d1117; color:white; border:1px solid var(--border-color);">
+              <button class="btn-main" style="margin:0; flex:1;" onclick="generateHeterogeneousGroups()">Generar Equips Heterogenis</button>
+              <button class="btn-danger" onclick="resetSession()">Netejar</button>
             </div>
 
-            <!-- List of Registered Attendees -->
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 mt-8">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-base font-bold text-slate-200 flex items-center gap-2">
-                        <i data-lucide="list" class="w-4 h-4 text-cyan-400"></i> Llista de Registrats (<span id="registeredListCount">0</span>)
-                    </h3>
-                    <button onclick="toggleAttendeeList()" id="btnToggleList" class="text-xs text-cyan-400 hover:underline font-semibold">
-                        Ocultar Llista
-                    </button>
-                </div>
-                <div id="attendeesTableContainer" class="overflow-x-auto">
-                    <table class="w-full text-left text-sm text-slate-300">
-                        <thead class="text-xs text-slate-400 uppercase bg-slate-950/80 border-b border-slate-800">
-                            <tr>
-                                <th class="py-3 px-4">#</th>
-                                <th class="py-3 px-4">Nom / Àlies</th>
-                                <th class="py-3 px-4">Nivell Micro:bit</th>
-                                <th class="py-3 px-4 text-right">Accions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="attendeesTableBody" class="divide-y divide-slate-800">
-                            <tr>
-                                <td colspan="4" class="py-6 text-center text-slate-500 italic">Cap participant registrat de moment.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-        </section>
-
-        <!-- ========================================== -->
-        <!-- VIEW 2: ATTENDEE MOBILE REGISTRATION FORM  -->
-        <!-- ========================================== -->
-        <section id="viewAttendee" class="hidden max-w-md mx-auto py-2">
-            
-            <div class="bg-slate-900/95 border border-slate-800 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500"></div>
-
-                <!-- Header -->
-                <div class="text-center mb-6 pt-2">
-                    <div class="w-14 h-14 bg-cyan-950 border border-cyan-800 text-cyan-400 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner">
-                        <i data-lucide="gamepad-2" class="w-8 h-8"></i>
-                    </div>
-                    <h2 class="text-2xl font-black text-white">Uneix-te a la Missió</h2>
-                    <p class="text-xs text-slate-400 mt-1">Escriu el teu nom i selecciona la teva experiència amb micro:bit</p>
-                </div>
-
-                <!-- Form -->
-                <form id="attendeeForm" onsubmit="handleAttendeeSubmit(event)" class="space-y-4">
-                    
-                    <!-- Room Code Option -->
-                    <div>
-                        <label for="attendeeRoomCode" class="block text-xs font-semibold text-slate-300 mb-1">Codi de la Sala / Aula:</label>
-                        <input type="text" id="attendeeRoomCode" required uppercase placeholder="ROOM1" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-cyan-400 font-tech font-bold uppercase placeholder-slate-600 focus:outline-none focus:border-cyan-500 transition-all">
-                    </div>
-
-                    <!-- Name Input -->
-                    <div>
-                        <label for="attendeeName" class="block text-xs font-semibold text-slate-300 mb-1">El teu Nom o Nom d'Equip:</label>
-                        <input type="text" id="attendeeName" required placeholder="Ex. Marc / Laia P." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500 transition-all font-medium">
-                    </div>
-
-                    <!-- Level Selector Options -->
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 mb-2">Selecciona el teu Nivell de Programació:</label>
-                        <div class="space-y-2">
-                            
-                            <!-- Level 1 Option -->
-                            <label class="relative flex items-start p-3 rounded-xl border border-slate-800 bg-slate-950 hover:border-slate-700 cursor-pointer transition-all">
-                                <input type="radio" name="microbitLevel" value="1" required class="mt-1 text-cyan-500 focus:ring-cyan-500 border-slate-700 bg-slate-900">
-                                <div class="ml-3">
-                                    <span class="block text-sm font-bold text-slate-200">Nivell 1: Principiant</span>
-                                    <span class="block text-xs text-slate-400">Mai he usat la micro:bit o quasi gens. Sóc nou en això.</span>
-                                </div>
-                            </label>
-
-                            <!-- Level 2 Option -->
-                            <label class="relative flex items-start p-3 rounded-xl border border-slate-800 bg-slate-950 hover:border-slate-700 cursor-pointer transition-all">
-                                <input type="radio" name="microbitLevel" value="2" class="mt-1 text-cyan-500 focus:ring-cyan-500 border-slate-700 bg-slate-900">
-                                <div class="ml-3">
-                                    <span class="block text-sm font-bold text-emerald-400">Nivell 2: Bàsic / Modificador</span>
-                                    <span class="block text-xs text-slate-400">Sé mostrar icones, textos i modificar blocs MakeCode fàcils.</span>
-                                </div>
-                            </label>
-
-                            <!-- Level 3 Option -->
-                            <label class="relative flex items-start p-3 rounded-xl border border-slate-800 bg-slate-950 hover:border-slate-700 cursor-pointer transition-all">
-                                <input type="radio" name="microbitLevel" value="3" class="mt-1 text-cyan-500 focus:ring-cyan-500 border-slate-700 bg-slate-900">
-                                <div class="ml-3">
-                                    <span class="block text-sm font-bold text-cyan-400">Nivell 3: Intermedi / Creador</span>
-                                    <span class="block text-xs text-slate-400">Sé utilitzar variables, bucles, sensors (acceleròmetre, botons).</span>
-                                </div>
-                            </label>
-
-                            <!-- Level 4 Option -->
-                            <label class="relative flex items-start p-3 rounded-xl border border-slate-800 bg-slate-950 hover:border-slate-700 cursor-pointer transition-all">
-                                <input type="radio" name="microbitLevel" value="4" class="mt-1 text-cyan-500 focus:ring-cyan-500 border-slate-700 bg-slate-900">
-                                <div class="ml-3">
-                                    <span class="block text-sm font-bold text-purple-400">Nivell 4: Avançat / Mag</span>
-                                    <span class="block text-xs text-slate-400">Domino la ràdio micro:bit, servomotors, funcions o Python.</span>
-                                </div>
-                            </label>
-
-                        </div>
-                    </div>
-
-                    <!-- Submit Button -->
-                    <button type="submit" class="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white font-bold py-3.5 rounded-xl shadow-lg glow-pink transition-all transform active:scale-95 flex items-center justify-center gap-2">
-                        <i data-lucide="send" class="w-4 h-4"></i>
-                        <span>ENVIAR REGISTRE</span>
-                    </button>
-                </form>
-
-                <!-- Feedback Message & Assigned Group View Card -->
-                <div id="attendeeSuccessCard" class="hidden text-center py-6 space-y-4">
-                    <div class="w-16 h-16 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded-full flex items-center justify-center mx-auto shadow-lg">
-                        <i data-lucide="check-circle-2" class="w-10 h-10"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-white">¡Registre Recomanat!</h3>
-                    <p class="text-sm text-slate-300">
-                        Hola <span id="registeredNameDisplay" class="font-bold text-cyan-400"></span>. El teu nivell s'ha desat correctament.
-                    </p>
-
-                    <!-- Assigned Group Banner (Live updated when generator runs) -->
-                    <div id="attendeeGroupBanner" class="bg-slate-950 p-4 rounded-2xl border border-slate-800 text-left">
-                        <div class="text-center py-2 text-slate-400 text-xs italic">
-                            👀 Esperant que el docent generi els equips a la pantalla...
-                        </div>
-                    </div>
-
-                    <button onclick="resetAttendeeForm()" class="text-xs text-slate-500 underline hover:text-slate-300">
-                        Canviar el meu nom o nivell
-                    </button>
-                </div>
-
-            </div>
-        </section>
-
-    </main>
-
-    <!-- MODAL: FIREBASE CONFIGURATION -->
-    <div id="firebaseModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
-            <button onclick="closeConfigModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
-                <i data-lucide="x" class="w-5 h-5"></i>
-            </button>
-
-            <div class="flex items-center gap-3 mb-4">
-                <div class="p-2.5 bg-cyan-950 border border-cyan-800 rounded-xl text-cyan-400">
-                    <i data-lucide="database" class="w-6 h-6"></i>
-                </div>
-                <div>
-                    <h3 class="text-lg font-bold text-white">Configuració Firebase Realtime</h3>
-                    <p class="text-xs text-slate-400">Enganxa la teva configuració de Firestore per a sincronització multi-dispositiu</p>
-                </div>
-            </div>
-
-            <div class="space-y-3">
-                <p class="text-xs text-slate-300 bg-slate-950 p-3 rounded-xl border border-slate-800">
-                    💡 Per defecte l'aplicació funciona en <strong>Mode Local / Broadcast</strong>. Si vols que els alumnes s'inscriguin des de qualsevol xarxa mòbil, enganxa l'objecte <code>firebaseConfig</code> o les claus.
-                </p>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Firebase Config JSON o Objecte:</label>
-                    <textarea id="firebaseConfigInput" rows="6" placeholder='{
-  "apiKey": "AIzaSy...",
-  "authDomain": "my-app.firebaseapp.com",
-  "projectId": "my-app",
-  "storageBucket": "my-app.appspot.com",
-  "messagingSenderId": "123456",
-  "appId": "1:1234:web:abcd"
-}' class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs font-mono text-cyan-300 focus:outline-none focus:border-cyan-500"></textarea>
-                </div>
-            </div>
-
-            <div class="flex items-center justify-between gap-3 mt-5">
-                <button onclick="clearFirebaseConfig()" class="text-xs text-rose-400 hover:underline">
-                    Desconnectar Firebase
-                </button>
-                <div class="flex gap-2">
-                    <button onclick="closeConfigModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold">
-                        Cancel·lar
-                    </button>
-                    <button onclick="saveFirebaseConfig()" class="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl text-xs shadow glow-cyan">
-                        Desar i Connectar
-                    </button>
-                </div>
-            </div>
+            <div id="groups-container" class="groups-grid"></div>
+          </div>
         </div>
-    </div>
+      `;
 
-    <!-- Notification Toast -->
-    <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 border border-cyan-500/40 text-cyan-200 px-4 py-3 rounded-xl shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-2 z-50">
-        <i data-lucide="info" class="w-4 h-4 text-cyan-400"></i>
-        <span id="toastMsg" class="text-xs font-semibold">Notificació</span>
-    </div>
+      // Generar Codi QR
+      const studentUrl = window.location.origin + window.location.pathname + "?session=" + currentSession + "&mode=attendee";
+      new QRCode(document.getElementById("qrcode"), {
+        text: studentUrl,
+        width: 180,
+        height: 180
+      });
 
-    <!-- Firebase standard JS App & Firestore Import -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+      // Escoltar en Temps Real tots els participants
+      const colRef = window.fs.collection(window.db, "sessions", currentSession, "students");
+      window.fs.onSnapshot(colRef, (snapshot) => {
+        const students = [];
+        snapshot.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
+        
+        updateStatsAndDashboard(students);
+      });
+    }
 
-        // Global Firebase variables on window
-        window.FB_MOD = {
-            initializeApp,
-            getAuth,
-            signInAnonymously,
-            getFirestore,
-            collection,
-            doc,
-            setDoc,
-            onSnapshot,
-            deleteDoc,
-            writeBatch
-        };
+    function updateStatsAndDashboard(students) {
+      document.getElementById('count-total').innerText = students.length;
+      document.getElementById('count-l4').innerText = students.filter(s => s.level === 4).length;
 
-        // Trigger Firebase initialization if saved config exists
-        window.initFirebaseFromStorage();
-    </script>
-
-    <script>
-        // State Variables
-        const STORAGE_KEY_ATTENDEES = 'mb_escape_attendees';
-        const STORAGE_KEY_GROUPS = 'mb_escape_groups';
-        const STORAGE_KEY_FBCONFIG = 'mb_escape_fb_config';
-        const STORAGE_KEY_ROOM = 'mb_escape_room_code';
-
-        let roomCode = localStorage.getItem(STORAGE_KEY_ROOM) || 'ROOM1';
-        let attendees = [];
-        let generatedGroups = [];
-        let currentView = 'projector';
-
-        // Firebase active state
-        let db = null;
-        let auth = null;
-        let unsubscribeAttendees = null;
-        let unsubscribeGroups = null;
-        let isFirebaseActive = false;
-
-        // BroadcastChannel for fallback fast local tab sync
-        const broadcastChannel = 'BroadcastChannel' in window ? new BroadcastChannel('mb_local_sync') : null;
-        if (broadcastChannel) {
-            broadcastChannel.onmessage = (e) => {
-                if (!isFirebaseActive && e.data && e.data.type === 'SYNC') {
-                    loadFromLocalStorage();
-                    renderAll();
-                }
-            };
+      // Agrupar per equip si ja estan generats
+      const groupsMap = {};
+      students.forEach(s => {
+        if (s.group) {
+          if (!groupsMap[s.group]) groupsMap[s.group] = [];
+          groupsMap[s.group].push(s);
         }
+      });
 
-        window.onload = function() {
-            lucide.createIcons();
-            
-            // Read URL Params
-            const params = new URLSearchParams(window.location.search);
-            if (params.get('session')) {
-                roomCode = params.get('session').toUpperCase();
-                localStorage.setItem(STORAGE_KEY_ROOM, roomCode);
-            }
+      const container = document.getElementById('groups-container');
+      if (Object.keys(groupsMap).length === 0) {
+        container.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#8b949e;">Encara no s'han creat equips. Premeu "Generar Equips Heterogenis".</p>`;
+        return;
+      }
 
-            document.getElementById('attendeeRoomCode').value = roomCode;
-            document.getElementById('roomCodeDisplay').innerText = roomCode;
+      container.innerHTML = '';
+      Object.keys(groupsMap).sort((a,b) => a - b).forEach(gId => {
+        const members = groupsMap[gId];
+        const hasL4 = members.some(m => m.level === 4);
 
-            if (params.get('mode') === 'attendee') {
-                switchView('attendee');
-            } else {
-                switchView('projector');
-            }
+        const card = document.createElement('div');
+        card.className = `group-card ${hasL4 ? 'has-advanced' : ''}`;
+        card.innerHTML = `
+          <div class="group-title">
+            <span>Grup ${gId}</span>
+            ${hasL4 ? '<i class="fa-solid fa-star" style="color:var(--accent-orange);" title="Te membre d\'Anvançat"></i>' : ''}
+          </div>
+          <ul class="member-list">
+            ${members.map(m => `
+              <li class="member-item">
+                <span>${m.name}</span>
+                <span class="badge badge-${m.level}">N${m.level}</span>
+              </li>
+            `).join('')}
+          </ul>
+        `;
+        container.appendChild(card);
+      });
+    }
 
-            loadFromLocalStorage();
-            generateQrCode();
-            renderAll();
-        };
+    // ALGORISME D'AGRUPACIÓ HETEROGÈNIA
+    async function generateHeterogeneousGroups() {
+      const numGroups = parseInt(document.getElementById('numGroups').value) || 2;
+      
+      const colRef = window.fs.collection(window.db, "sessions", currentSession, "students");
+      const snapshot = await window.fs.getDocs(colRef);
+      
+      let students = [];
+      snapshot.forEach(docSnap => students.push({ id: docSnap.id, ...docSnap.data() }));
 
-        // Local Storage Sync Helpers
-        function saveToLocalStorage() {
-            localStorage.setItem(STORAGE_KEY_ATTENDEES, JSON.stringify(attendees));
-            localStorage.setItem(STORAGE_KEY_GROUPS, JSON.stringify(generatedGroups));
-            if (broadcastChannel && !isFirebaseActive) {
-                broadcastChannel.postMessage({ type: 'SYNC' });
-            }
+      if (students.length === 0) {
+        alert("No hi ha participants inscrits.");
+        return;
+      }
+
+      // Separar per nivells (De Nivell 4 a Nivell 1)
+      const l4 = students.filter(s => s.level === 4);
+      const l3 = students.filter(s => s.level === 3);
+      const l2 = students.filter(s => s.level === 2);
+      const l1 = students.filter(s => s.level === 1);
+
+      // Barrejar arrays per a distribució aleatòria dins del mateix nivell
+      const shuffle = arr => arr.sort(() => Math.random() - 0.5);
+      
+      const orderedStudents = [
+        ...shuffle(l4),
+        ...shuffle(l3),
+        ...shuffle(l2),
+        ...shuffle(l1)
+      ];
+
+      // Repartiment Snake/Round-Robin per equilibrar
+      const groups = Array.from({ length: numGroups }, () => []);
+      
+      orderedStudents.forEach((student, index) => {
+        const groupIndex = index % numGroups;
+        groups[groupIndex].push(student);
+      });
+
+      // Guardar a Firebase
+      for (let g = 0; g < groups.length; g++) {
+        const groupNum = g + 1;
+        for (let student of groups[g]) {
+          await window.fs.updateDoc(window.fs.doc(window.db, "sessions", currentSession, "students", student.id), {
+            group: groupNum
+          });
         }
-
-        function loadFromLocalStorage() {
-            const rawA = localStorage.getItem(STORAGE_KEY_ATTENDEES);
-            const rawG = localStorage.getItem(STORAGE_KEY_GROUPS);
-            attendees = rawA ? JSON.parse(rawA) : [];
-            generatedGroups = rawG ? JSON.parse(rawG) : [];
-        }
-
-        // ==========================================
-        // FIREBASE INITIALIZATION & REALTIME LISTENERS
-        // ==========================================
-        window.initFirebaseFromStorage = function() {
-            const savedConfig = localStorage.getItem(STORAGE_KEY_FBCONFIG);
-            if (!savedConfig || !window.FB_MOD) return;
-
-            try {
-                const config = JSON.parse(savedConfig);
-                const app = window.FB_MOD.initializeApp(config);
-                auth = window.FB_MOD.getAuth(app);
-                db = window.FB_MOD.getFirestore(app);
-
-                // Sign in anonymously
-                window.FB_MOD.signInAnonymously(auth).then(() => {
-                    isFirebaseActive = true;
-                    updateFirebaseStatusUI(true);
-                    setupFirestoreListeners();
-                }).catch(err => {
-                    console.error("Firebase Auth Error:", err);
-                    updateFirebaseStatusUI(false);
-                });
-
-            } catch(e) {
-                console.error("Invalid Firebase Config", e);
-                updateFirebaseStatusUI(false);
-            }
-        };
-
-        function setupFirestoreListeners() {
-            if (!db || !isFirebaseActive) return;
-
-            // Unsubscribe existing
-            if (unsubscribeAttendees) unsubscribeAttendees();
-            if (unsubscribeGroups) unsubscribeGroups();
-
-            const appId = 'escape-microbit';
-            const attendeesColl = window.FB_MOD.collection(db, 'artifacts', appId, 'public', 'data', `attendees_${roomCode}`);
-            const groupsColl = window.FB_MOD.collection(db, 'artifacts', appId, 'public', 'data', `groups_${roomCode}`);
-
-            // Listen for Attendees
-            unsubscribeAttendees = window.FB_MOD.onSnapshot(attendeesColl, (snapshot) => {
-                const list = [];
-                snapshot.forEach(doc => list.push(doc.data()));
-                attendees = list;
-                saveToLocalStorage();
-                renderAll();
-            }, (err) => console.warn("Firestore listener error", err));
-
-            // Listen for Generated Groups
-            unsubscribeGroups = window.FB_MOD.onSnapshot(groupsColl, (snapshot) => {
-                const list = [];
-                snapshot.forEach(doc => list.push(doc.data()));
-                if (list.length > 0) {
-                    // Sort by group ID
-                    list.sort((a,b) => a.id - b.id);
-                    generatedGroups = list;
-                    saveToLocalStorage();
-                    renderAll();
-                }
-            }, (err) => console.warn("Firestore groups error", err));
-        }
-
-        function updateFirebaseStatusUI(active) {
-            const dot = document.getElementById('firebaseStatusDot');
-            const txt = document.getElementById('syncStatusText');
-            if (active) {
-                dot.className = "inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30";
-                dot.innerHTML = "● Firebase En Línia";
-                if (txt) txt.innerHTML = `Estat: <span class="text-emerald-400 font-semibold">● Sincronitzat Firebase</span>`;
-            } else {
-                dot.className = "inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30";
-                dot.innerHTML = "● Mode Local";
-                if (txt) txt.innerHTML = `Estat: <span class="text-amber-400 font-semibold">● Mode Local / Broadcast</span>`;
-            }
-        }
-
-        // ==========================================
-        // UI SWITCHING & QR CODE
-        // ==========================================
-        function switchView(mode) {
-            currentView = mode;
-            const projectorSec = document.getElementById('viewProjector');
-            const attendeeSec = document.getElementById('viewAttendee');
-            const btnProjector = document.getElementById('btnTabProjector');
-            const btnAttendee = document.getElementById('btnTabAttendee');
-
-            if (mode === 'projector') {
-                projectorSec.classList.remove('hidden');
-                attendeeSec.classList.add('hidden');
-                
-                btnProjector.className = "flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-semibold transition-all bg-cyan-500 text-slate-950 shadow";
-                btnAttendee.className = "flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-semibold text-slate-400 hover:text-white transition-all";
-            } else {
-                projectorSec.classList.add('hidden');
-                attendeeSec.classList.remove('hidden');
-
-                btnAttendee.className = "flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-semibold transition-all bg-pink-500 text-white shadow";
-                btnProjector.className = "flex items-center gap-2 px-3.5 py-1.5 rounded-lg font-semibold text-slate-400 hover:text-white transition-all";
-            }
-        }
-
-        function generateQrCode() {
-            const qrContainer = document.getElementById('qrcode');
-            qrContainer.innerHTML = '';
-            
-            // Mandatory URL requirement specified in prompt
-            const attendeeUrl = `https://antonnin.github.io/heterogeneous-group-dynamic/?session=${encodeURIComponent(roomCode)}`;
-
-            document.getElementById('currentUrlText').innerText = attendeeUrl;
-
-            new QRCode(qrContainer, {
-                text: attendeeUrl,
-                width: 135,
-                height: 135,
-                colorDark : "#0B0F17",
-                colorLight : "#FFFFFF",
-                correctLevel : QRCode.CorrectLevel.M
-            });
-        }
-
-        function copyAppUrl() {
-            const attendeeUrl = `https://antonnin.github.io/heterogeneous-group-dynamic/?session=${encodeURIComponent(roomCode)}`;
-            const tempInput = document.createElement('input');
-            tempInput.value = attendeeUrl;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempInput);
-
-            showToast("Enllaç copiat al portapapers!");
-        }
-
-        // ==========================================
-        // ATTENDEE FORM & SUBMISSION
-        // ==========================================
-        async function handleAttendeeSubmit(e) {
-            e.preventDefault();
-            const inputRoom = document.getElementById('attendeeRoomCode').value.trim().toUpperCase() || 'ROOM1';
-            const nameInput = document.getElementById('attendeeName').value.trim();
-            const levelSelected = document.querySelector('input[name="microbitLevel"]:checked');
-
-            if (!nameInput || !levelSelected) {
-                showToast("Si us plau completa el teu nom i nivell.");
-                return;
-            }
-
-            // Update active room code if changed
-            if (inputRoom !== roomCode) {
-                roomCode = inputRoom;
-                localStorage.setItem(STORAGE_KEY_ROOM, roomCode);
-                document.getElementById('roomCodeDisplay').innerText = roomCode;
-                generateQrCode();
-                if (isFirebaseActive) setupFirestoreListeners();
-            }
-
-            const level = parseInt(levelSelected.value, 10);
-            const id = 'att_' + nameInput.toLowerCase().replace(/\s+/g, '_');
-
-            const attendeeData = {
-                id: id,
-                name: nameInput,
-                level: level,
-                updatedAt: Date.now()
-            };
-
-            // Local save
-            const existingIdx = attendees.findIndex(a => a.id === id);
-            if (existingIdx >= 0) {
-                attendees[existingIdx] = attendeeData;
-            } else {
-                attendees.push(attendeeData);
-            }
-            saveToLocalStorage();
-
-            // Firestore sync if active
-            if (isFirebaseActive && db) {
-                try {
-                    const docRef = window.FB_MOD.doc(db, 'artifacts', 'escape-microbit', 'public', 'data', `attendees_${roomCode}`, id);
-                    await window.FB_MOD.setDoc(docRef, attendeeData);
-                } catch(err) {
-                    console.error("Error pushing to Firestore", err);
-                }
-            }
-
-            renderAll();
-
-            // Show confirmation UI for mobile
-            document.getElementById('attendeeForm').classList.add('hidden');
-            document.getElementById('attendeeSuccessCard').classList.remove('hidden');
-            document.getElementById('registeredNameDisplay').innerText = nameInput;
-
-            showToast("S'han desat les teves dades!");
-        }
-
-        function resetAttendeeForm() {
-            document.getElementById('attendeeForm').classList.remove('hidden');
-            document.getElementById('attendeeSuccessCard').classList.add('hidden');
-        }
-
-        function adjustGroupCount(delta) {
-            const input = document.getElementById('numGroupsInput');
-            let current = parseInt(input.value) || 1;
-            current = Math.max(1, Math.min(25, current + delta));
-            input.value = current;
-        }
-
-        // ==========================================
-        // SMART HETEROGENEOUS GROUPING ALGORITHM
-        // ==========================================
-        async function generateHeterogeneousGroups() {
-            if (attendees.length === 0) {
-                showToast("Registra primer participants abans de crear equips.");
-                return;
-            }
-
-            const numGroups = Math.max(1, parseInt(document.getElementById('numGroupsInput').value) || 1);
-            
-            // 1. Create empty target groups
-            let groups = Array.from({ length: numGroups }, (_, i) => ({
-                id: i + 1,
-                name: `Equip ${i + 1}`,
-                members: []
-            }));
-
-            // 2. Separate participants by level
-            const l4 = attendees.filter(a => a.level === 4);
-            const l3 = attendees.filter(a => a.level === 3);
-            const l2 = attendees.filter(a => a.level === 2);
-            const l1 = attendees.filter(a => a.level === 1);
-
-            // Helper to shuffle arrays randomly
-            const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
-
-            const shuffledL4 = shuffle(l4);
-            const shuffledL3 = shuffle(l3);
-            const shuffledL2 = shuffle(l2);
-            const shuffledL1 = shuffle(l1);
-
-            // 3. MANDATORY STEP A: Distribute Level 4 (Advanced/Mages) evenly first
-            let groupIdx = 0;
-            shuffledL4.forEach(person => {
-                groups[groupIdx % numGroups].members.push(person);
-                groupIdx++;
-            });
-
-            // 4. STEP B: Round-robin distribution for Level 3, Level 2, and Level 1
-            const remainingPool = [...shuffledL3, ...shuffledL2, ...shuffledL1];
-
-            remainingPool.forEach(person => {
-                // Find group with minimum number of members
-                groups.sort((a, b) => a.members.length - b.members.length);
-                groups[0].members.push(person);
-            });
-
-            // Re-sort groups by original numeric ID
-            groups.sort((a, b) => a.id - b.id);
-
-            generatedGroups = groups;
-            saveToLocalStorage();
-
-            // Sync to Firestore if configured
-            if (isFirebaseActive && db) {
-                try {
-                    const appId = 'escape-microbit';
-                    // Save each group to firestore collection
-                    for (const g of generatedGroups) {
-                        const gRef = window.FB_MOD.doc(db, 'artifacts', appId, 'public', 'data', `groups_${roomCode}`, `group_${g.id}`);
-                        await window.FB_MOD.setDoc(gRef, g);
-                    }
-                } catch(err) {
-                    console.error("Error saving groups to Firestore", err);
-                }
-            }
-
-            renderAll();
-            showToast("¡Equips heterogenis generats amb èxit!");
-        }
-
-        // ==========================================
-        // RENDER FUNCTIONS
-        // ==========================================
-        function renderAll() {
-            // Stats counts
-            const count4 = attendees.filter(a => a.level === 4).length;
-            const count3 = attendees.filter(a => a.level === 3).length;
-            const count2 = attendees.filter(a => a.level === 2).length;
-            const count1 = attendees.filter(a => a.level === 1).length;
-            const total = attendees.length;
-
-            document.getElementById('statTotalBadge').innerText = total;
-            document.getElementById('registeredListCount').innerText = total;
-
-            document.getElementById('countL4').innerText = count4;
-            document.getElementById('countL3').innerText = count3;
-            document.getElementById('countL2').innerText = count2;
-            document.getElementById('countL1').innerText = count1;
-
-            const pct = (val) => total > 0 ? `${(val / total) * 100}%` : '0%';
-            document.getElementById('barL4').style.width = pct(count4);
-            document.getElementById('barL3').style.width = pct(count3);
-            document.getElementById('barL2').style.width = pct(count2);
-            document.getElementById('barL1').style.width = pct(count1);
-
-            // Render Attendees Table
-            const tbody = document.getElementById('attendeesTableBody');
-            if (attendees.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-slate-500 italic">Cap participant registrat de moment.</td></tr>`;
-            } else {
-                tbody.innerHTML = attendees.map((att, idx) => `
-                    <tr class="hover:bg-slate-800/40 transition-colors">
-                        <td class="py-2.5 px-4 font-tech text-slate-500">${idx + 1}</td>
-                        <td class="py-2.5 px-4 font-semibold text-white">${escapeHtml(att.name)}</td>
-                        <td class="py-2.5 px-4">${getLevelBadgeHtml(att.level)}</td>
-                        <td class="py-2.5 px-4 text-right">
-                            <button onclick="removeAttendee('${att.id}')" class="text-slate-500 hover:text-rose-400 p-1 transition-colors" title="Eliminar">
-                                <i data-lucide="x" class="w-4 h-4"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `).join('');
-            }
-
-            // Render Projection Grid
-            const groupsGrid = document.getElementById('groupsGrid');
-            const statusBadge = document.getElementById('groupStatusBadge');
-
-            if (generatedGroups.length === 0) {
-                statusBadge.innerText = "Pendent de generació";
-                statusBadge.className = "text-xs font-semibold px-3 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700";
-                
-                groupsGrid.innerHTML = `
-                    <div class="col-span-full bg-slate-900/50 border border-dashed border-slate-800 rounded-2xl p-12 text-center">
-                        <i data-lucide="bot" class="w-12 h-12 text-slate-600 mx-auto mb-3"></i>
-                        <p class="text-slate-400 font-medium">Encara no s'han creat els equips.</p>
-                        <p class="text-xs text-slate-500 mt-1">Demana als alumnes que s'inscriguin i prem "Generar Equip Heterogenis".</p>
-                    </div>
-                `;
-            } else {
-                statusBadge.innerText = `● ${generatedGroups.length} Equips Formats`;
-                statusBadge.className = "text-xs font-semibold px-3 py-1 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800/60";
-
-                groupsGrid.innerHTML = generatedGroups.map(group => {
-                    const hasAdvanced = group.members.some(m => m.level === 4);
-
-                    return `
-                        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden flex flex-col justify-between">
-                            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${hasAdvanced ? 'from-purple-500 to-cyan-400' : 'from-slate-700 to-slate-800'}"></div>
-                            
-                            <div>
-                                <div class="flex justify-between items-center mb-3 pb-2.5 border-b border-slate-800">
-                                    <h3 class="text-lg font-black text-cyan-400 font-tech uppercase tracking-wide flex items-center gap-2">
-                                        <i data-lucide="shield" class="w-4 h-4 text-cyan-400"></i>
-                                        ${escapeHtml(group.name)}
-                                    </h3>
-                                    <span class="text-xs bg-slate-950 text-slate-400 border border-slate-800 px-2.5 py-0.5 rounded-full font-tech">
-                                        ${group.members.length} membres
-                                    </span>
-                                </div>
-
-                                <!-- Member list -->
-                                <ul class="space-y-2 mb-4">
-                                    ${group.members.length === 0 ? '<li class="text-xs text-slate-600 italic">Equip buit</li>' : ''}
-                                    ${group.members.map(m => `
-                                        <li class="flex items-center justify-between text-sm bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/60">
-                                            <span class="font-medium text-slate-200 truncate pr-2">${escapeHtml(m.name)}</span>
-                                            ${getLevelBadgeHtml(m.level, true)}
-                                        </li>
-                                    `).join('')}
-                                </ul>
-                            </div>
-
-                            <div class="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-slate-400">
-                                <span>Mentoria L4:</span>
-                                ${hasAdvanced 
-                                    ? '<span class="text-purple-400 font-bold flex items-center gap-1">✔ Mag Present</span>' 
-                                    : '<span class="text-slate-500">Sense Nivell 4</span>'}
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            }
-
-            // Update Attendee Mobile View with assigned team if generated
-            renderAttendeeGroupStatus();
-
-            lucide.createIcons();
-        }
-
-        function renderAttendeeGroupStatus() {
-            const nameInput = document.getElementById('attendeeName')?.value.trim();
-            const banner = document.getElementById('attendeeGroupBanner');
-            if (!banner || !nameInput) return;
-
-            if (generatedGroups.length === 0) {
-                banner.innerHTML = `
-                    <div class="text-center py-2 text-slate-400 text-xs italic">
-                        👀 Esperant que el docent generi els equips a la pantalla...
-                    </div>
-                `;
-                return;
-            }
-
-            // Find group where attendee is placed
-            const myGroup = generatedGroups.find(g => 
-                g.members.some(m => m.name.toLowerCase() === nameInput.toLowerCase())
-            );
-
-            if (myGroup) {
-                banner.innerHTML = `
-                    <div class="text-center pb-2 border-b border-slate-800 mb-3">
-                        <span class="text-xs font-semibold text-cyan-400 uppercase tracking-wider">El teu Equip Assignat:</span>
-                        <h4 class="text-2xl font-black text-white font-tech mt-0.5">${escapeHtml(myGroup.name)}</h4>
-                    </div>
-                    <div class="space-y-1.5">
-                        <span class="text-[11px] text-slate-400 font-semibold block">Companys de Missió:</span>
-                        <div class="space-y-1">
-                            ${myGroup.members.map(m => `
-                                <div class="flex items-center justify-between text-xs bg-slate-900 p-2 rounded-lg border border-slate-800">
-                                    <span class="font-medium ${m.name.toLowerCase() === nameInput.toLowerCase() ? 'text-cyan-400 font-bold' : 'text-slate-200'}">
-                                        ${escapeHtml(m.name)} ${m.name.toLowerCase() === nameInput.toLowerCase() ? '(Tu)' : ''}
-                                    </span>
-                                    ${getLevelBadgeHtml(m.level, true)}
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            } else {
-                banner.innerHTML = `
-                    <div class="text-center py-2 text-slate-400 text-xs italic">
-                        No s'ha trobat el teu nom als equips generats. Demana al docent que re-generi els equips.
-                    </div>
-                `;
-            }
-        }
-
-        function getLevelBadgeHtml(level, compact = false) {
-            switch(level) {
-                case 4:
-                    return `<span class="inline-flex items-center gap-1 text-xs font-semibold text-purple-300 bg-purple-950/80 border border-purple-800/80 px-2 py-0.5 rounded-md">${compact ? 'Niv 4' : 'Nivell 4 (Mag)'}</span>`;
-                case 3:
-                    return `<span class="inline-flex items-center gap-1 text-xs font-semibold text-cyan-300 bg-cyan-950/80 border border-cyan-800/80 px-2 py-0.5 rounded-md">${compact ? 'Niv 3' : 'Nivel 3 (Intermedi)'}</span>`;
-                case 2:
-                    return `<span class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-300 bg-emerald-950/80 border border-emerald-800/80 px-2 py-0.5 rounded-md">${compact ? 'Niv 2' : 'Nivell 2 (Bàsic)'}</span>`;
-                default:
-                    return `<span class="inline-flex items-center gap-1 text-xs font-semibold text-slate-400 bg-slate-950 border border-slate-800 px-2 py-0.5 rounded-md">${compact ? 'Niv 1' : 'Nivell 1 (Principiant)'}</span>`;
-            }
-        }
-
-        async function removeAttendee(id) {
-            attendees = attendees.filter(a => a.id !== id);
-            saveToLocalStorage();
-
-            if (isFirebaseActive && db) {
-                try {
-                    const appId = 'escape-microbit';
-                    const docRef = window.FB_MOD.doc(db, 'artifacts', appId, 'public', 'data', `attendees_${roomCode}`, id);
-                    await window.FB_MOD.deleteDoc(docRef);
-                } catch(e) { console.error(e); }
-            }
-
-            renderAll();
-            showToast("Participant eliminat.");
-        }
-
-        function toggleAttendeeList() {
-            const container = document.getElementById('attendeesTableContainer');
-            const btn = document.getElementById('btnToggleList');
-            if (container.classList.contains('hidden')) {
-                container.classList.remove('hidden');
-                btn.innerText = "Ocultar Llista";
-            } else {
-                container.classList.add('hidden');
-                btn.innerText = "Mostrar Llista";
-            }
-        }
-
-        function clearAllData() {
-            if (confirm("Segur que vols eliminar tots els participants i equips de la sessió?")) {
-                attendees = [];
-                generatedGroups = [];
-                saveToLocalStorage();
-                renderAll();
-                showToast("S'han reiniciat les dades.");
-            }
-        }
-
-        function exportGroupsCSV() {
-            if (generatedGroups.length === 0) {
-                showToast("No hi ha equips per exportar.");
-                return;
-            }
-
-            let csvContent = "data:text/csv;charset=utf-8,Equip,Nom,Nivell\n";
-            generatedGroups.forEach(g => {
-                g.members.forEach(m => {
-                    csvContent += `"${g.name}","${m.name}","Nivell ${m.level}"\n`;
-                });
-            });
-
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `equips_microbit_${roomCode}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            showToast("Descarregant fitxer CSV...");
-        }
-
-        function addDemoParticipants() {
-            const sampleData = [
-                { name: 'Bernat V.', level: 4 },
-                { name: 'Eulàlia R.', level: 4 },
-                { name: 'Nil M.', level: 3 },
-                { name: 'Ona P.', level: 3 },
-                { name: 'Pol G.', level: 3 },
-                { name: 'Júlia B.', level: 2 },
-                { name: 'Arnau K.', level: 2 },
-                { name: 'Laia L.', level: 2 },
-                { name: 'Biel M.', level: 1 },
-                { name: 'Aina F.', level: 1 },
-                { name: 'Jan S.', level: 1 },
-                { name: 'Clara A.', level: 1 }
-            ];
-
-            sampleData.forEach(item => {
-                const id = 'att_demo_' + item.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
-                if (!attendees.some(a => a.id === id)) {
-                    attendees.push({
-                        id: id,
-                        name: item.name,
-                        level: item.level,
-                        updatedAt: Date.now()
-                    });
-                }
-            });
-
-            saveToLocalStorage();
-            renderAll();
-            showToast("S'han afegit participants de prova.");
-        }
-
-        // ==========================================
-        // FIREBASE MODAL & CONFIG HELPERS
-        // ==========================================
-        function openConfigModal() {
-            const saved = localStorage.getItem(STORAGE_KEY_FBCONFIG);
-            if (saved) {
-                document.getElementById('firebaseConfigInput').value = saved;
-            }
-            document.getElementById('firebaseModal').classList.remove('hidden');
-        }
-
-        function closeConfigModal() {
-            document.getElementById('firebaseModal').classList.add('hidden');
-        }
-
-        function saveFirebaseConfig() {
-            const raw = document.getElementById('firebaseConfigInput').value.trim();
-            if (!raw) {
-                showToast("Ingressa una configuració vàlida.");
-                return;
-            }
-
-            try {
-                JSON.parse(raw); // validate JSON format
-                localStorage.setItem(STORAGE_KEY_FBCONFIG, raw);
-                closeConfigModal();
-                showToast("Configuració desada. Reiniciant connexió...");
-                setTimeout(() => location.reload(), 800);
-            } catch(e) {
-                showToast("El JSON no és vàlid. Revisa el format.");
-            }
-        }
-
-        function clearFirebaseConfig() {
-            localStorage.removeItem(STORAGE_KEY_FBCONFIG);
-            closeConfigModal();
-            showToast("S'ha eliminat la configuració de Firebase.");
-            setTimeout(() => location.reload(), 800);
-        }
-
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toastMsg');
-            toastMsg.innerText = msg;
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            
-            setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
-        }
-
-        function escapeHtml(str) {
-            return String(str).replace(/[&<>"']/g, function(m) {
-                return {
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    '"': '&quot;',
-                    "'": '&#039;'
-                }[m];
-            });
-        }
-    </script>
+      }
+    }
+
+    async function resetSession() {
+      if (!confirm("Segur que vols esborrar tots els participants d'aquesta sessió?")) return;
+
+      const colRef = window.fs.collection(window.db, "sessions", currentSession, "students");
+      const snapshot = await window.fs.getDocs(colRef);
+      snapshot.forEach(async (docSnap) => {
+        await window.fs.deleteDoc(docSnap.ref);
+      });
+    }
+  </script>
 </body>
 </html>
