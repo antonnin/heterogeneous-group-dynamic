@@ -145,6 +145,7 @@
       letter-spacing: 1px;
       background: linear-gradient(90deg, #ffffff 0%, var(--accent-green) 50%, var(--accent-blue) 100%);
       -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
       text-shadow: 0 0 20px rgba(0, 230, 118, 0.2);
       line-height: 1.15;
@@ -1206,9 +1207,14 @@
     // Contrasenya de seguretat
     const ADMIN_PASSWORD = "GTRoboticaBP2026";
 
+    let isAppInitialized = false;
+
     // Inicialització quan Firebase estigui a punt
     window.addEventListener('firebase-ready', () => {
-      initApp();
+      if (!isAppInitialized) {
+        isAppInitialized = true;
+        initApp();
+      }
     });
 
     // Fallback d'inicialització si l'esdeveniment ja s'ha disparat
@@ -1216,7 +1222,10 @@
       const checkFirebase = setInterval(() => {
         if (window.db && window.fs) {
           clearInterval(checkFirebase);
-          initApp();
+          if (!isAppInitialized) {
+            isAppInitialized = true;
+            initApp();
+          }
         }
       }, 80);
     });
@@ -1409,13 +1418,13 @@
                 <select id="session-select-dropdown" class="session-dropdown" onchange="handleSessionDropdownChange(this.value)">
                   <!-- Es carrega dinàmicament amb totes les sessions de Firebase -->
                 </select>
-                <button class="btn-add-session" onclick="openSessionModal()" title="Crear una nova sessió">
-                  <i class="fa-solid fa-plus"></i>
-                </button>
               </div>
             </div>
 
             <div class="qr-actions">
+              <button class="btn-secondary" onclick="openSessionModal()">
+                <i class="fa-solid fa-plus"></i> Crear una nova sessió
+              </button>
               <button class="btn-secondary" onclick="copyStudentLink()">
                 <i class="fa-regular fa-copy"></i> Copiar l'enllaç
               </button>
