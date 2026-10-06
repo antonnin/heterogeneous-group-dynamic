@@ -1689,26 +1689,12 @@
           ...shuffle(l1)
         ];
 
-        // Estructura temporal per equilibrar els grups
-        const groupsData = Array.from({ length: numGroups }, () => ({
-          students: [],
-          totalLevel: 0
-        }));
+        const groups = Array.from({ length: numGroups }, () => []);
 
-        // Repartim prioritzant els grups amb menys participants i menys nivell acumulat
-        ordered.forEach(student => {
-          groupsData.sort((a, b) => {
-            if (a.students.length !== b.students.length) {
-              return a.students.length - b.students.length;
-            }
-            return a.totalLevel - b.totalLevel;
-          });
-          groupsData[0].students.push(student);
-          groupsData[0].totalLevel += student.level;
+        // Distribució seqüencial simple
+        ordered.forEach((student, index) => {
+          groups[index % numGroups].push(student);
         });
-
-        // Extraiem només els arrays d'estudiants
-        const groups = groupsData.map(g => g.students);
 
         // Actualitzar a Firebase
         for (let g = 0; g < groups.length; g++) {
