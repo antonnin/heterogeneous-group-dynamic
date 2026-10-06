@@ -1689,16 +1689,26 @@
           ...shuffle(l1)
         ];
 
-        const groups = Array.from({ length: numGroups }, () => []);
+        // Estructura temporal per equilibrar els grups
+        const groupsData = Array.from({ length: numGroups }, () => ({
+          students: [],
+          totalLevel: 0
+        }));
 
-        // Distribució serpentina (Snake) per maximitzar l'equilibri
-        ordered.forEach((student, index) => {
-          const round = Math.floor(index / numGroups);
-          const groupIndex = (round % 2 === 0) 
-            ? (index % numGroups) 
-            : (numGroups - 1 - (index % numGroups));
-          groups[groupIndex].push(student);
+        // Repartim prioritzant els grups amb menys participants i menys nivell acumulat
+        ordered.forEach(student => {
+          groupsData.sort((a, b) => {
+            if (a.students.length !== b.students.length) {
+              return a.students.length - b.students.length;
+            }
+            return a.totalLevel - b.totalLevel;
+          });
+          groupsData[0].students.push(student);
+          groupsData[0].totalLevel += student.level;
         });
+
+        // Extraiem només els arrays d'estudiants
+        const groups = groupsData.map(g => g.students);
 
         // Actualitzar a Firebase
         for (let g = 0; g < groups.length; g++) {
