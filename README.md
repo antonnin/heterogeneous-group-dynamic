@@ -23,7 +23,7 @@ Aquesta eina utilitza un **algorisme de repartiment serpentina (*snake distribut
 1. Obre l'enllaç de l'aplicació en un navegador a l'ordinador connectat al projector o pantalla gran:
    👉 **[https://antonnin.github.io/heterogeneous-group-dynamic/](https://antonnin.github.io/heterogeneous-group-dynamic/)**
 2. Per defecte, l'aplicació s'obre a la pestanya **Taulell del moderador**.
-3. Sota el codi QR trobaràs un **menú desplegable amb totes les sessions obertes a Firebase** (per defecte hi ha **`GRUP1-XTCD-TGN`** i **`GRUP2-XTCD-TGN`**, a més de qualsevol altra sessió que hagis creat).
+3. Sota el codi QR trobaràs un **menú desplegable amb les sessions existents a Firebase**. Es conserven les sessions ja creades; si no n'hi ha cap seleccionada al dispositiu, s'inicia amb `GRUP1-XTCD-TGN`.
 4. Tria al desplegable la sessió que vulguis projectar o fes clic al botó **`+`** per afegir-ne una de nova.
 
 ---
@@ -67,6 +67,7 @@ A la barra de navegació superior trobaràs la pestanya **"Espai administració"
    - **Cercar i filtrar:** Cercador per text i filtres ràpids per nivell (N1 a N4).
    - **Exportar a CSV:** Descarregar un fitxer de full de càlcul compatible amb Excel o Google Sheets amb tot el llistat d'assistents i equips.
    - **Eliminar participants individuals:** Fent clic a la icona de la paperera 🗑️ d'un alumne concret si s'ha equivocat de nom.
+   - **Eliminar una sessió concreta:** Cada sessió té una acció pròpia d'eliminació. La interfície verifica amb Firebase que ja no queden participants ni el document de sessió.
    - **Desfer equips:** Permet cancel·lar l'assignació d'equips i deixar tots els alumnes com a pendents si vols canviar el nombre d'equips sense que hagin de tornar a registrar-se.
    - **Buidar o eliminar la sessió:** Elimina les dades de la sessió un cop finalitzada la jornada per deixar la plataforma neta per al proper taller.
 
@@ -74,7 +75,7 @@ A la barra de navegació superior trobaràs la pestanya **"Espai administració"
 
 ## 🛠️ Tecnologies utilitzades
 
-- **Frontend:** HTML5 semàntic, Vanilla CSS modern (disseny *cyber-dark*, *glassmorphism* i disseny adaptatiu mòbil/projector) i JavaScript modular.
-- **Backend i temps real:** Firebase Firestore (modular SDK v10.8.0) amb sincronització de dades en viu mitjançant *snapshots*.
+- **Frontend:** Pàgines HTML separades per al taulell (`index.html`), participants (`participant.html`) i administració (`admin.html`), amb estils i lògica compartits a `styles.css` i `app.js`.
+- **Backend i temps real:** Firebase (SDK modular v10.8.0) amb sincronització de dades en viu mitjançant *snapshots*.
 - **Llibreries:** QRCode.js per a la generació dinàmica de codis QR i FontAwesome 6 per a la iconografia.
 - **Desplegament:** GitHub Pages allotjat a la branca `main`.
