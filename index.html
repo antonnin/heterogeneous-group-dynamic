@@ -1125,8 +1125,49 @@
     </div>
   </main>
 
-  <footer>
-    <p>Generador de grups micro:bitada &bull; Dinàmica de grups heterogenis per a la comunitat educativa</p>
+  <footer style="margin-top: 50px; padding: 30px; background: white; border-radius: var(--radius-lg); max-width: 1000px; width: 100%; margin-left: auto; margin-right: auto; display: flex; flex-direction: column; align-items: center; gap: 25px; box-shadow: var(--shadow-subtle);">
+    
+    <div style="width: 100%;">
+      <p style="font-size: 0.95rem; font-weight: 700; text-align: left; margin: 0 0 8px 0; color: #000; font-family: 'Arial', sans-serif;">
+        Programa finançat pel Ministeri d'Educació, Formació Professional i Esports, amb el suport de la Generalitat de Catalunya
+      </p>
+      <div style="width: 100%; height: 2px; background-color: #000; margin-bottom: 20px;"></div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 15px; flex-wrap: wrap;">
+      <!-- Ministerio logo -->
+      <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/Logotipo_del_Ministerio_de_Educaci%C3%B3n%2C_Formaci%C3%B3n_Profesional_y_Deportes.svg" alt="Ministerio de Educación, Formación Profesional y Deportes" style="height: 65px; object-fit: contain;">
+      
+      <!-- Código Escuela 4.0 logo -->
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <svg height="55" viewBox="0 0 100 100" width="55">
+          <path d="M50 10 L85 50 L50 90 L15 50 Z" fill="none" stroke="#2c7eb4" stroke-width="8"/>
+          <path d="M60 30 L80 50 L60 70" fill="none" stroke="#f1a63c" stroke-width="8"/>
+        </svg>
+        <span style="font-family: 'Arial', sans-serif; font-size: 1.8rem; font-weight: bold; color: #007096;">Código Escuela 4.0</span>
+      </div>
+
+      <!-- Generalitat logo -->
+      <img src="https://upload.wikimedia.org/wikipedia/commons/b/b3/Generalitat_de_Catalunya_logo.svg" alt="Generalitat de Catalunya" style="height: 65px; object-fit: contain;">
+    </div>
+
+    <!-- Mentories 4.0 logo -->
+    <div style="margin: 20px 0;">
+      <div style="background-color: #0070ba; color: white; padding: 15px 35px; border-radius: 20px 20px 20px 5px; font-family: 'Arial', sans-serif; font-size: 2.8rem; font-weight: bold; display: inline-flex; align-items: center; gap: 15px; position: relative;">
+        <!-- Top tab decoration -->
+        <div style="position: absolute; top: -10px; left: 20px; width: 80px; height: 20px; background-color: #0070ba; border-radius: 10px 10px 0 0;"></div>
+        <!-- Tail decoration -->
+        <div style="position: absolute; bottom: -15px; left: 15px; width: 30px; height: 30px; background-color: #0070ba; clip-path: polygon(0 0, 100% 0, 50% 100%);"></div>
+        
+        <span style="position: relative; z-index: 1;">Mentories</span>
+        <span style="background-color: white; color: #0070ba; border-radius: 50%; width: 55px; height: 55px; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; position: relative; z-index: 1;">4.0</span>
+      </div>
+    </div>
+
+    <!-- Authorship disclaimer -->
+    <div style="font-size: 1.05rem; color: #888; max-width: 900px; line-height: 1.6; margin-top: 10px; font-family: 'Plus Jakarta Sans', sans-serif; text-align: center;">
+      Micro:bitada Penedès 2026 és un projecte desenvolupat per <a href="https://github.com/antonnin" target="_blank" style="color: #888; text-decoration: underline;">Anton Nin</a>, membre del grup de robòtica i del programa Mentories 4.0, i actualitzat pels mentors i mentores del ST Penedès. Està sota la llicència <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" style="color: #888; text-decoration: underline;">CC BY-NC-SA 4.0</a>. Podeu copiar, distribuir i adaptar l'obra sempre que se'n reconegui l'autoria, no se'n faci un ús comercial, i les obres derivades es distribueixin sota la mateixa llicència.
+    </div>
   </footer>
 
   <!-- MODAL DE LOGIN PER L'ADMINISTRACIÓ -->
