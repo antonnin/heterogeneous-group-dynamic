@@ -1111,6 +1111,7 @@
     .group-badge-large {
       font-family: 'Lilita One', 'Trebuchet MS', sans-serif;
       letter-spacing: 0;
+      font-weight: 400;
     }
 
     .brand-text h1 {

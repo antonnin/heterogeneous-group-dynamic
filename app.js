@@ -274,19 +274,19 @@
                 <div class="stat-value" id="count-total">0</div>
               </div>
               <div class="stat-card stat-l1">
-                <div class="stat-label">N1 novell</div>
+                <div class="stat-label">Nivell 1 - Novell</div>
                 <div class="stat-value" id="count-l1">0</div>
               </div>
               <div class="stat-card stat-l2">
-                <div class="stat-label">N2 bàsic</div>
+                <div class="stat-label">Nivell 2 - Bàsic</div>
                 <div class="stat-value" id="count-l2">0</div>
               </div>
               <div class="stat-card stat-l3">
-                <div class="stat-label">N3 intermedi</div>
+                <div class="stat-label">Nivell 3 - Intermedi</div>
                 <div class="stat-value" id="count-l3">0</div>
               </div>
               <div class="stat-card stat-l4">
-                <div class="stat-label">N4 avançat</div>
+                <div class="stat-label">Nivell 4 - Avançat</div>
                 <div class="stat-value" id="count-l4">0</div>
               </div>
             </div>
